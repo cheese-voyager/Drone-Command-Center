@@ -1,0 +1,7 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7,<3
+pydantic-settings>=2.3
+pymavlink>=2.4.41
+opencv-python-headless>=4.9
+paho-mqtt>=2.0,<3

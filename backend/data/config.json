@@ -1,0 +1,19 @@
+{
+  "battery": {
+    "capacity_mah": 10000,
+    "cells": 6,
+    "min_safe_percent": 25
+  },
+  "drop": {
+    "servo_channel": 9,
+    "thrust_percent": 70,
+    "duration_s": 1.5,
+    "seeds_per_drop": 1,
+    "pwm_min": 1000,
+    "pwm_max": 2000
+  },
+  "seed": {
+    "loaded": 0,
+    "dropped": 0
+  }
+}

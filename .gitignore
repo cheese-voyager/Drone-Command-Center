@@ -1,0 +1,88 @@
+# --- Environment / Kunci Rahasia ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+
+# --- Dependensi & Paket ---
+node_modules/
+jspm_packages/
+web_modules/
+.pnp
+.pnp.js
+vendor/
+.bundle/
+bin/
+pkg/
+Cargo.lock
+
+# --- Hasil Build / Kompilasi ---
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+*.war
+*.ear
+
+# --- Log & Diagnostik ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+.stylelintcache
+
+# --- Sistem Operasi (OS) ---
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.Trashes
+
+# --- Editor & IDE ---
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# IntelliJ / WebStorm / PyCharm
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# --- Lain-lain ---
+.sass-cache/
+.coverage
+htmlcov/
+.pytest_cache/
+
+/backend.zip
+*__pycache__
+

@@ -1,0 +1,22 @@
+[project]
+name = "seeder-drone-backend"
+version = "1.0.0"
+description = "Backend drone penebar benih (FastAPI + MAVLink) untuk Pixhawk + Raspberry Pi"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["venv", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"streamlit/app.py" = ["E501"]  # UI string panjang, tidak perlu dipotong
