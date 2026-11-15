@@ -1,0 +1,14 @@
+# Hak akses MQTT. Sesuaikan "seeder/drone1" dengan MQTT_TOPIC_PREFIX/MQTT_DEVICE_ID di backend/.env
+
+# Backend di Raspi: kirim data, terima perintah. Tidak boleh mengirim perintah ke dirinya sendiri.
+user backend
+topic read  seeder/drone1/cmd/+
+topic write seeder/drone1/online
+topic write seeder/drone1/status
+topic write seeder/drone1/drop/event
+topic write seeder/drone1/response
+
+# Dashboard / aplikasi: boleh lihat semuanya dan kirim perintah. Tidak boleh memalsukan status.
+user dashboard
+topic read  seeder/drone1/#
+topic write seeder/drone1/cmd/+
