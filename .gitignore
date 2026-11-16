@@ -86,3 +86,17 @@ htmlcov/
 /backend.zip
 *__pycache__
 
+
+# --- Python / Backend ---
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+__pycache__/
+*.pyc
+backend/logs/
+
+# --- Mobile build ---
+mobile/build/
+mobile/ios/
+mobile/android/
