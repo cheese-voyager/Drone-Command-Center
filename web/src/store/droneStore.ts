@@ -20,6 +20,7 @@ interface DroneStoreState {
   pushDrop: (drop: DropRecord) => void;
   resetDrops: () => void;
   setError: (error: string | null) => void;
+  setStale: (stale: boolean) => void;
   send: <T>(cmd: CommandName, body?: object, timeoutMs?: number) => Promise<T>;
 }
 
@@ -45,6 +46,7 @@ export const useDroneStore = create<DroneStoreState>((set, get) => ({
     })),
   resetDrops: () => set({ drops: [] }),
   setError: (error) => set({ error }),
+  setStale: (stale) => set({ stale }),
   send: async <T>(cmd: CommandName, body?: object, timeoutMs = 5000): Promise<T> => {
     const client = get().client;
     if (!client) {

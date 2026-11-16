@@ -1,9 +1,9 @@
 import { useDropHistory } from "../hooks/useDropHistory";
 import { DropHistoryTable } from "../components/drop/DropHistoryTable";
-import { useDroneStatus } from "../hooks/useDroneStatus";
+import { useDroneStore } from "../store/droneStore";
 
 export function DropHistoryPage() {
-  const { lastDrop } = useDroneStatus();
+  const lastDrop = useDroneStore((state) => state.lastDrop);
   const drops = useDropHistory(lastDrop);
 
   return (

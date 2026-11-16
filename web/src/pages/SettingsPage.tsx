@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useBackendUrl } from "../hooks/useBackendUrl";
-import { useDroneStatus } from "../hooks/useDroneStatus";
+import { useDroneStore } from "../store/droneStore";
 
 export function SettingsPage() {
   const { apiUrl, username, password, brokerHost, setApiUrl, setUsername, setPassword, setBrokerHost } = useBackendUrl();
-  const client = useDroneStatus().client;
+  const client = useDroneStore((state) => state.client);
   const [saved, setSaved] = useState(false);
 
   const save = () => {

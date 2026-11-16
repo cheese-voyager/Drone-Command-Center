@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { createDroneClient, type DroneClient, type DroneStatus } from "../api/droneMqtt";
 import { useDroneStore } from "../store/droneStore";
 import { useBackendUrl } from "./useBackendUrl";
@@ -33,7 +33,6 @@ export function useDroneStatus(): UseDroneStatusResult {
   const setLastDrop = useDroneStore((state) => state.setLastDrop);
 
   const backendUrl = useBackendUrl();
-  const [now, setNow] = useState(() => Date.now());
   const clientRef = useRef<DroneClient | null>(null);
   const closedRef = useRef(true);
   const connectRef = useRef<() => Promise<void>>(async () => undefined);
@@ -69,7 +68,14 @@ export function useDroneStatus(): UseDroneStatusResult {
     connectRef.current = connect;
     void connect();
 
-    const timer = setInterval(() => setNow(Date.now()), 1000);
+    const timer = setInterval(() => {
+      const nextNow = Date.now();
+      const current = useDroneStore.getState();
+      const nextStale = current.status === null || nextNow - current.lastStatusAt > STALE_AFTER_MS;
+      if (nextStale !== current.stale) {
+        current.setStale(nextStale);
+      }
+    }, 1000);
     return () => {
       closedRef.current = true;
       clearInterval(timer);
@@ -80,15 +86,12 @@ export function useDroneStatus(): UseDroneStatusResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const lastStatusAt = useDroneStore.getState().lastStatusAt;
-  const staleNow = status === null ? true : now - lastStatusAt > STALE_AFTER_MS;
-
   return {
     client,
     status,
     backendOnline,
     pixhawkConnected: status?.connected ?? false,
-    stale: stale || staleNow,
+    stale,
     lastDrop,
     error,
     connecting,

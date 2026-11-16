@@ -1,10 +1,11 @@
-import { useDroneStatus } from "../hooks/useDroneStatus";
+import { useDroneStore } from "../store/droneStore";
 import { DropButton } from "../components/drop/DropButton";
 import { DropConfigForm } from "../components/drop/DropConfigForm";
 import { SeedCounter } from "../components/seed/SeedCounter";
 
 export function DropControlPage() {
-  const { backendOnline, error } = useDroneStatus();
+  const backendOnline = useDroneStore((state) => state.backendOnline);
+  const error = useDroneStore((state) => state.error);
 
   return (
     <div>

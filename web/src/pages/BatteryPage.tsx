@@ -1,12 +1,13 @@
+import { useDroneStore } from "../store/droneStore";
 import { BatteryGauge } from "../components/telemetry/BatteryGauge";
 import { BatteryForm } from "../components/battery/BatteryForm";
 import { FlightTimeEstimate } from "../components/telemetry/FlightTimeEstimate";
 import { VoltageCurrentCard } from "../components/telemetry/VoltageCurrentCard";
-import { useDroneStatus } from "../hooks/useDroneStatus";
 import { fmtNumber } from "../utils/format";
 
 export function BatteryPage() {
-  const { status: drone } = useDroneStatus();
+  const status = useDroneStore((state) => state.status);
+  const drone = status;
   const battery = drone?.battery;
   const minutesLeft = battery?.estimated_minutes_left ?? null;
 

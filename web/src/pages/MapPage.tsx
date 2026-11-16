@@ -3,13 +3,15 @@ import { DroneMap } from "../components/map/DroneMap";
 import { DroneMarker } from "../components/map/DroneMarker";
 import { DropMarkers } from "../components/map/DropMarkers";
 import { FlightPath } from "../components/map/FlightPath";
-import { useDroneStatus } from "../hooks/useDroneStatus";
+import { useDropHistory } from "../hooks/useDropHistory";
 import { useDroneStore } from "../store/droneStore";
 import type { LatLon } from "../utils/geo";
 
 export function MapPage() {
-  const { status: drone } = useDroneStatus();
-  const drops = useDroneStore((state) => state.drops);
+  const status = useDroneStore((state) => state.status);
+  const drone = status;
+  const lastDrop = useDroneStore((state) => state.lastDrop);
+  const drops = useDropHistory(lastDrop);
   const [path, setPath] = useState<LatLon[]>([]);
   const lastRef = useRef<LatLon | null>(null);
 

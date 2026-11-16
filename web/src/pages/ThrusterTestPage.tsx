@@ -1,9 +1,10 @@
+import { useDroneStore } from "../store/droneStore";
 import { EmergencyStopButton } from "../components/thruster/EmergencyStopButton";
 import { ThrusterTestForm } from "../components/thruster/ThrusterTestForm";
-import { useDroneStatus } from "../hooks/useDroneStatus";
 
 export function ThrusterTestPage() {
-  const { backendOnline, error } = useDroneStatus();
+  const backendOnline = useDroneStore((state) => state.backendOnline);
+  const error = useDroneStore((state) => state.error);
 
   return (
     <div>
@@ -28,8 +29,8 @@ export function ThrusterTestPage() {
 }
 
 function MotorList() {
-  const status = useDroneStatus();
-  const motors = status.status?.motors;
+  const status = useDroneStore((state) => state.status);
+  const motors = status?.motors;
   if (!motors) {
     return <p className="muted">Belum ada data motor.</p>;
   }

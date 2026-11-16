@@ -100,3 +100,10 @@ backend/logs/
 mobile/build/
 mobile/ios/
 mobile/android/
+
+# --- Python caches ---
+.ruff_cache/
+.mypy_cache/
+
+# --- Flutter / mobile ---
+.dart_tool/

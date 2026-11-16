@@ -8,11 +8,15 @@ import { VoltageCurrentCard } from "../components/telemetry/VoltageCurrentCard";
 import { DroneMap } from "../components/map/DroneMap";
 import { DropButton } from "../components/drop/DropButton";
 import { SeedCounter } from "../components/seed/SeedCounter";
-import { useDroneStatus } from "../hooks/useDroneStatus";
+import { useDroneStore } from "../store/droneStore";
 import { fmtNumber } from "../utils/format";
 
 export function DashboardPage() {
-  const { status: drone, backendOnline, stale, error } = useDroneStatus();
+  const status = useDroneStore((state) => state.status);
+  const backendOnline = useDroneStore((state) => state.backendOnline);
+  const stale = useDroneStore((state) => state.stale);
+  const error = useDroneStore((state) => state.error);
+  const drone = status;
   const battery = drone?.battery;
   const motors = drone?.motors;
   const center = drone && drone.lat !== null && drone.lon !== null ? { lat: drone.lat, lon: drone.lon } : null;
