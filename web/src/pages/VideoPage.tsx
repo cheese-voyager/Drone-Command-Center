@@ -1,3 +1,4 @@
+import { Card } from "../components/ui/Card";
 import { LiveVideo } from "../components/video/LiveVideo";
 
 export function VideoPage() {
@@ -9,7 +10,9 @@ export function VideoPage() {
           <p className="page-sub">Live preview kamera via MJPEG.</p>
         </div>
       </div>
-      <LiveVideo />
+      <Card title="Live preview" meta="MJPEG /video">
+        <LiveVideo />
+      </Card>
     </div>
   );
 }

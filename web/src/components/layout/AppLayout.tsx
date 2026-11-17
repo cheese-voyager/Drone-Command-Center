@@ -10,17 +10,10 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      {sidebarOpen ? (
-        <div
-          className="modal-overlay"
-          style={{ background: "rgba(2,6,16,0.65)", pointerEvents: "auto" }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      ) : null}
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="app-main">
-        <Topbar title="Drone Command Center" onMenuClick={() => setSidebarOpen(true)} />
-        <main className="app-content">
+      <Topbar onMenuClick={() => setSidebarOpen((open) => !open)} />
+      <div className="app-body">
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <main className="app-content app-main">
           <Outlet />
         </main>
       </div>

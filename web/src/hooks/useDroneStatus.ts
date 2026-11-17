@@ -5,6 +5,7 @@ import { useBackendUrl } from "./useBackendUrl";
 import type { DropRecord } from "../types";
 
 const STALE_AFTER_MS = 3000;
+const RETRY_DELAY_MS = 3000;
 
 export interface UseDroneStatusResult {
   client: DroneClient | null;
@@ -31,41 +32,57 @@ export function useDroneStatus(): UseDroneStatusResult {
   const setBackendOnline = useDroneStore((state) => state.setBackendOnline);
   const setStatus = useDroneStore((state) => state.setStatus);
   const setLastDrop = useDroneStore((state) => state.setLastDrop);
+  const setError = useDroneStore((state) => state.setError);
 
   const backendUrl = useBackendUrl();
   const clientRef = useRef<DroneClient | null>(null);
   const closedRef = useRef(true);
-  const connectRef = useRef<() => Promise<void>>(async () => undefined);
+  const retryRef = useRef<number | null>(null);
 
   useEffect(() => {
     closedRef.current = false;
+    setConnecting(true);
+    setError(null);
 
     const connect = async () => {
-      const c = await createDroneClient({
-        apiUrl: backendUrl.apiUrl,
-        username: backendUrl.username || undefined,
-        password: backendUrl.password || undefined,
-        brokerHost: backendUrl.brokerHost || undefined,
-      });
-      if (closedRef.current) {
-        c.close();
-        return;
+      if (closedRef.current) return;
+      try {
+        const c = await createDroneClient({
+          apiUrl: backendUrl.apiUrl,
+          username: backendUrl.username || undefined,
+          password: backendUrl.password || undefined,
+          brokerHost: backendUrl.brokerHost || undefined,
+        });
+        if (closedRef.current) {
+          c.close();
+          return;
+        }
+        clientRef.current = c;
+        setClient(c);
+        setConnecting(false);
+        setError(null);
+        c.onStatus((next) => {
+          setStatus(next);
+        });
+        c.onOnline((online) => {
+          setBackendOnline(online);
+        });
+        c.onDrop((drop) => {
+          setLastDrop(drop);
+        });
+      } catch (err) {
+        if (closedRef.current) return;
+        clientRef.current = null;
+        setClient(null);
+        setConnecting(false);
+        setError(err instanceof Error ? err.message : String(err));
+        retryRef.current = window.setTimeout(() => {
+          retryRef.current = null;
+          void connect();
+        }, RETRY_DELAY_MS);
       }
-      clientRef.current = c;
-      setClient(c);
-      setConnecting(false);
-      c.onStatus((next) => {
-        setStatus(next);
-      });
-      c.onOnline((online) => {
-        setBackendOnline(online);
-      });
-      c.onDrop((drop) => {
-        setLastDrop(drop);
-      });
     };
 
-    connectRef.current = connect;
     void connect();
 
     const timer = setInterval(() => {
@@ -79,6 +96,10 @@ export function useDroneStatus(): UseDroneStatusResult {
     return () => {
       closedRef.current = true;
       clearInterval(timer);
+      if (retryRef.current !== null) {
+        window.clearTimeout(retryRef.current);
+        retryRef.current = null;
+      }
       void clientRef.current?.close();
       clientRef.current = null;
       setClient(null);

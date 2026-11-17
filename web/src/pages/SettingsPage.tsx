@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Card } from "../components/ui/Card";
 import { useBackendUrl } from "../hooks/useBackendUrl";
 import { useDroneStore } from "../store/droneStore";
 
@@ -21,8 +22,7 @@ export function SettingsPage() {
         </div>
       </div>
       <div className="grid grid-2">
-        <div className="card card-pad">
-          <div className="section-title">Backend</div>
+        <Card title="Backend">
           <label className="label" htmlFor="setting-api">Alamat API</label>
           <input id="setting-api" className="input" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
           <label className="label" htmlFor="setting-user">Username MQTT</label>
@@ -35,9 +35,8 @@ export function SettingsPage() {
             Simpan
           </button>
           {saved ? <span className="hint" style={{ marginLeft: "var(--space-3)" }}>Tersimpan.</span> : null}
-        </div>
-        <div className="card card-pad">
-          <div className="section-title">Koneksi MQTT</div>
+        </Card>
+        <Card title="Koneksi MQTT">
           <dl className="kv">
             <dt>Status</dt>
             <dd>{client ? (client.info.connected ? "terhubung" : "terputus") : "belum terhubung"}</dd>
@@ -46,7 +45,7 @@ export function SettingsPage() {
             <dt>Base topic</dt>
             <dd>{client ? client.info.base_topic : "-"}</dd>
           </dl>
-        </div>
+        </Card>
       </div>
     </div>
   );

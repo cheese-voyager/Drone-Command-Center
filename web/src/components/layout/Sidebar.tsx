@@ -31,7 +31,7 @@ function IconMap() {
 function IconDrop() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2v20M5 6c0-3 7-3 7 0s7 3 7 0c0-6-7-10-7-10s-7 4-7 10z" />
+      <path d="M12 3c3.5 4.2 6 7.2 6 10.2A6 6 0 0 1 6 13.2C6 10.2 8.5 7.2 12 3z" />
     </svg>
   );
 }
@@ -58,8 +58,9 @@ function IconBattery() {
 function IconSeed() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 3v18M3 12h18" />
+      <path d="M12 21v-9" />
+      <path d="M12 12c0-4 3-7 8-7 0 4-3 7-8 7z" />
+      <path d="M12 14c0-3-2-5-6-5 0 3 2 5 6 5z" />
     </svg>
   );
 }
@@ -93,12 +94,16 @@ function IconSettings() {
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const backendOnline = useDroneStore((state) => state.backendOnline);
+  const pixhawk = useDroneStore((state) => state.status?.connected ?? false);
+  const stale = useDroneStore((state) => state.stale);
 
-  const items: NavItem[] = [
+  const operations: NavItem[] = [
     { to: "/", label: "Dashboard", icon: <IconDashboard /> },
     { to: "/map", label: "Peta", icon: <IconMap /> },
-    { to: "/drop", label: "Drop", icon: <IconDrop /> },
+    { to: "/drop", label: "Drop Benih", icon: <IconDrop /> },
     { to: "/thruster", label: "Tes Thruster", icon: <IconThruster /> },
+  ];
+  const system: NavItem[] = [
     { to: "/battery", label: "Baterai", icon: <IconBattery /> },
     { to: "/seed", label: "Benih", icon: <IconSeed /> },
     { to: "/history", label: "Riwayat Drop", icon: <IconHistory /> },
@@ -106,28 +111,36 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     { to: "/settings", label: "Pengaturan", icon: <IconSettings /> },
   ];
 
+  const renderItems = (items: NavItem[]) =>
+    items.map((item) => (
+      <NavLink key={item.to} to={item.to} end={item.to === "/"} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} onClick={onClose}>
+        {item.icon}
+        <span>{item.label}</span>
+      </NavLink>
+    ));
+
   return (
     <aside className={`app-sidebar ${open ? "open" : ""}`}>
-      <div className="brand">
-        <span className="brand-mark">D</span>
-        <span>Drone Command Center</span>
-      </div>
-      <nav className="nav">
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
-            onClick={onClose}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+      <nav className="nav" aria-label="Navigasi utama">
+        <div className="nav-section">Operasi</div>
+        {renderItems(operations)}
+        <div className="nav-section">Sistem</div>
+        {renderItems(system)}
       </nav>
       <div className="sidebar-footer">
-        <span>Broker MQTT</span>
-        <span className={backendOnline ? "badge badge-ok" : "badge badge-error"}>{backendOnline ? "online" : "offline"}</span>
+        <span className="title">Tautan data</span>
+        <div className="row">
+          <span>Backend</span>
+          <b>{backendOnline ? "online" : "offline"}</b>
+        </div>
+        <div className="row">
+          <span>Pixhawk</span>
+          <b>{pixhawk ? "terhubung" : "terputus"}</b>
+        </div>
+        <div className="row">
+          <span>Telemetri</span>
+          <b>{stale ? "basi" : "segar"}</b>
+        </div>
       </div>
     </aside>
   );

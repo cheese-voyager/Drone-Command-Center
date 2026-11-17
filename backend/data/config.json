@@ -6,7 +6,7 @@
   },
   "drop": {
     "servo_channel": 9,
-    "thrust_percent": 70,
+    "thrust_percent": 70.0,
     "duration_s": 1.5,
     "seeds_per_drop": 1,
     "pwm_min": 1000,
