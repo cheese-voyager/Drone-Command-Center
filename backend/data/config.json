@@ -1,6 +1,6 @@
 {
   "battery": {
-    "capacity_mah": 10000,
+    "capacity_mah": 8000,
     "cells": 6,
     "min_safe_percent": 25
   },

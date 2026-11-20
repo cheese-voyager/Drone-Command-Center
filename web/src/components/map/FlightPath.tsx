@@ -15,5 +15,5 @@ export function FlightPath({ points }: FlightPathProps) {
     return null;
   }
 
-  return <Polyline positions={coords} color="#38bdf8" weight={3} opacity={0.8} />;
+  return <Polyline positions={coords} color="#38bdf8" weight={4} opacity={0.9} />;
 }

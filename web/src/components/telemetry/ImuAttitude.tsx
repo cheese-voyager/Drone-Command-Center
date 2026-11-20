@@ -13,15 +13,15 @@ export function ImuAttitude({ pitch, roll, yaw }: ImuAttitudeProps) {
       <div className="grid grid-3" style={{ gap: "var(--space-3)" }}>
         <div className="metric">
           <span className="metric-label">Pitch</span>
-          <span className="metric-value small">{fmtNumber(pitch)}°</span>
+          <span className="metric-value small">{fmtNumber(pitch)}Â°</span>
         </div>
         <div className="metric">
           <span className="metric-label">Roll</span>
-          <span className="metric-value small">{fmtNumber(roll)}°</span>
+          <span className="metric-value small">{fmtNumber(roll)}Â°</span>
         </div>
         <div className="metric">
           <span className="metric-label">Yaw</span>
-          <span className="metric-value small">{fmtNumber(yaw, 0)}°</span>
+          <span className="metric-value small">{fmtNumber(yaw, 0)}Â°</span>
         </div>
       </div>
     </div>

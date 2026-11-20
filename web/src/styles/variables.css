@@ -1,5 +1,7 @@
 /* Drone Command Center — token tema "tactical HUD". Nama variabel lama dipertahankan. */
 :root {
+  color-scheme: dark;
+
   --bg: #05090e;
   --bg-elev: #0a111a;
   --surface: #0a111a;
@@ -13,6 +15,7 @@
 
   --primary: #2de2e6;
   --primary-strong: #22c5c9;
+  --primary-hover: #5cf0f3;
   --primary-soft: rgba(45, 226, 230, 0.12);
   --primary-ink: #04121a;
   --ok: #3ddc97;
@@ -26,6 +29,9 @@
   --danger-soft: rgba(255, 69, 96, 0.14);
   --info: #5aa9ff;
   --info-soft: rgba(90, 169, 255, 0.12);
+
+  --overlay: rgba(5, 9, 14, 0.78);
+  --map-filter: invert(1) hue-rotate(180deg) brightness(0.62) contrast(0.95) saturate(0.55);
 
   --radius: 4px;
   --radius-sm: 3px;
@@ -46,8 +52,10 @@
   --topbar-h: 60px;
 }
 
-/* Tema terang hanya sebagai cadangan; tampilan utama adalah gelap. */
+/* Tema terang */
 [data-theme="light"] {
+  color-scheme: light;
+
   --bg: #eef2f8;
   --bg-elev: #ffffff;
   --surface: #ffffff;
@@ -58,8 +66,24 @@
   --text: #0f172a;
   --text-muted: #52617a;
   --text-dim: #6b7b93;
+
   --primary: #0a8f95;
   --primary-strong: #087379;
+  --primary-hover: #0aa6ad;
   --primary-soft: rgba(10, 143, 149, 0.12);
   --primary-ink: #ffffff;
+  --ok: #0f9d63;
+  --ok-soft: rgba(15, 157, 99, 0.12);
+  --warn: #b97700;
+  --warn-soft: rgba(185, 119, 0, 0.1);
+  --error: #d92b49;
+  --error-soft: rgba(217, 43, 73, 0.12);
+  --danger: #d92b49;
+  --danger-strong: #b91f38;
+  --danger-soft: rgba(217, 43, 73, 0.14);
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.12);
+
+  --overlay: rgba(15, 23, 42, 0.45);
+  --map-filter: none;
 }

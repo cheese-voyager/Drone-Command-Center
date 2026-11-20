@@ -2,6 +2,8 @@ import { useDroneStore } from "../store/droneStore";
 import { Card } from "../components/ui/Card";
 import { EmergencyStopButton } from "../components/thruster/EmergencyStopButton";
 import { ThrusterTestForm } from "../components/thruster/ThrusterTestForm";
+import { BarChart } from "../components/charts/BarChart";
+import { LiveDroneStrip } from "../components/telemetry/LiveDroneStrip";
 import { MOTOR_TEST_MAX_PERCENT } from "../utils/constants";
 
 export function ThrusterTestPage() {
@@ -10,7 +12,7 @@ export function ThrusterTestPage() {
   const armed = useDroneStore((state) => state.status?.armed ?? false);
 
   return (
-    <div>
+    <div className="page-fit">
       {error ? <div className="banner banner-error">{error}</div> : null}
       {!backendOnline ? <div className="banner banner-warning">Backend offline. Tes tidak dapat dikirim.</div> : null}
       <div className="page-head">
@@ -20,15 +22,41 @@ export function ThrusterTestPage() {
         </div>
         <span className={`badge ${armed ? "badge-error" : "badge-ok"}`}>{armed ? "ARMED · tes motor ditolak" : "DISARMED"}</span>
       </div>
+
+      <LiveDroneStrip />
+
       <div className="banner banner-warning" role="note">
         <div>
           <strong>Peringatan keselamatan.</strong> Lepas baling-baling sebelum tes motor. Tes motor hanya saat drone disarm dan thrust maksimal {MOTOR_TEST_MAX_PERCENT}%.
         </div>
       </div>
-      <div className="grid grid-2" style={{ alignItems: "start" }}>
-        <ThrusterTestForm />
-        <div className="stack">
-          <Card title="Motor penggerak" meta="Output saat ini">
+
+      <div className="fit-2col">
+        <div className="fit-col">
+          <ThrusterTestForm />
+          <Card title="Urutan aman" meta="Sebelum tes" className="fit-card grow">
+            <div className="check-row compact">
+              <span className="mark ok" aria-hidden>1</span>
+              <div className="grow">
+                Pastikan drone disarmed<small>Badge di atas harus DISARMED.</small>
+              </div>
+            </div>
+            <div className="check-row compact">
+              <span className="mark ok" aria-hidden>2</span>
+              <div className="grow">
+                Lepas baling-baling<small>Wajib untuk tes motor penggerak.</small>
+              </div>
+            </div>
+            <div className="check-row compact">
+              <span className="mark ok" aria-hidden>3</span>
+              <div className="grow">
+                Mulai dari thrust rendah<small>Motor maksimal {MOTOR_TEST_MAX_PERCENT}%.</small>
+              </div>
+            </div>
+          </Card>
+        </div>
+        <div className="fit-col">
+          <Card title="Motor penggerak" meta="Output saat ini" className="fit-card">
             <MotorList />
           </Card>
           <Card className="card-danger" title="Stop darurat">
@@ -51,15 +79,27 @@ function MotorList() {
   }
   return (
     <>
-      {motors.map((m) => (
-        <div key={m.id} className="motor-row">
-          <span>M{m.id}</span>
-          <div className={`bar${m.percent < 30 ? " warn" : ""}`}>
-            <span style={{ width: `${Math.max(0, Math.min(100, m.percent))}%` }} />
+      <BarChart
+        data={motors.map((motor) => ({
+          label: `M${motor.id}`,
+          value: motor.percent,
+          color: motor.percent < 30 ? "var(--warn)" : "var(--primary)",
+        }))}
+        height={96}
+        format={(value) => `${value.toFixed(0)}%`}
+      />
+      <div style={{ marginTop: "var(--space-3)" }}>
+        {motors.map((m) => (
+          <div key={m.id} className="motor-row with-pwm">
+            <span>M{m.id}</span>
+            <div className={`bar${m.percent < 30 ? " warn" : ""}`}>
+              <span style={{ width: `${Math.max(0, Math.min(100, m.percent))}%` }} />
+            </div>
+            <span>{m.percent.toFixed(1)}%</span>
+            <span className="muted">PWM {m.pwm}</span>
           </div>
-          <span>{m.percent.toFixed(1)}%</span>
-        </div>
-      ))}
+        ))}
+      </div>
     </>
   );
 }

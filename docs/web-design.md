@@ -129,6 +129,43 @@ Aturan penting:
 
 ---
 
+### 2.4 Cuaca BMKG (tambahan, frontend-only)
+
+Dashboard menampilkan prakiraan cuaca di sekitar posisi drone. Tidak ada perubahan backend: frontend memanggil API publik BMKG lewat proxy Vite (karena `api.bmkg.go.id` tidak mengirim header CORS).
+
+Alur:
+
+1. Ambil `lat`/`lon` dari status drone.
+2. Reverse geocode ? kode desa `adm4`:
+   `GET /bmkg-geo/api/df/v1/adm/coord?lat=<lat>&lon=<lon>`
+   (butuh header mirip browser: `Origin`/`Referer` `https://cuaca.bmkg.go.id`, `Sec-Fetch-*`; sudah diatur di `vite.config.ts`).
+3. Ambil prakiraan:
+   `GET /bmkg-api/publik/prakiraan-cuaca?adm4=<adm4>`
+4. Gabungkan `data[0].cuaca` (hari ini 1 slot, hari berikutnya 8 slot) dan pilih slot yang sedang berjalan.
+
+Proxy & konfigurasi:
+
+- `/bmkg-geo` ? `https://cuaca.bmkg.go.id`
+- `/bmkg-api` ? `https://api.bmkg.go.id`
+- Override lewat env: `VITE_BMKG_GEO_BASE`, `VITE_BMKG_API_BASE` (lihat `web/.env.example`).
+- Cache: reverse geocode 30 menit, prakiraan 10 menit; hook menyegarkan tiap 30 menit.
+
+Berkas terkait:
+
+- `web/src/api/bmkg.ts` — klien, cache, error (`coords|not_found|http|format|network`).
+- `web/src/utils/weather.ts` — format slot dan penilaian risiko.
+- `web/src/hooks/useWeather.ts` — status `idle|loading|ready|error`, reload manual.
+- `web/src/components/weather/WeatherCard.tsx` — kartu cuaca.
+- `web/src/components/map/WeatherMarker.tsx` — titik BMKG di peta.
+
+Aturan tampilan:
+
+- Wajib mencantumkan atribusi **"Sumber: BMKG"** beserta waktu rilis data.
+- Batas wajar API: 60 permintaan/menit/IP; data diperbarui 2x sehari, jadi jangan panggil tiap detik.
+- Peringatan risiko slot: angin >= 20 km/jam (waspada) / >= 30 (buruk); curah hujan > 0 mm (waspada) / >= 2 mm (buruk); kode cuaca >= 95 (buruk); jarak pandang < 5 km (waspada) / < 2 km (buruk).
+- Jika GPS belum ada, tampilkan status menunggu, bukan error.
+
+---
 ## 3. Arsitektur frontend
 
 ### 3.1 Stack

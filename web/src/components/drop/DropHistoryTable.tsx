@@ -1,4 +1,4 @@
-import { toCsv } from "../../utils/format";
+import { exportDropsExcel, exportDropsPdf } from "../../utils/reports";
 import type { DropRecord } from "../../types";
 
 interface DropHistoryTableProps {
@@ -6,27 +6,22 @@ interface DropHistoryTableProps {
 }
 
 export function DropHistoryTable({ drops }: DropHistoryTableProps) {
-  const exportCsv = () => {
-    const blob = new Blob([toCsv(drops)], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "riwayat_drop.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   if (drops.length === 0) {
     return <div className="empty">Belum ada drop.</div>;
   }
 
   return (
     <div>
-      <div className="flex between gap-3" style={{ marginBottom: "var(--space-3)" }}>
+      <div className="flex between center gap-3" style={{ marginBottom: "var(--space-2)" }}>
         <span className="muted">{drops.length} titik drop tercatat</span>
-        <button className="btn btn-secondary btn-sm" onClick={exportCsv}>
-          Unduh CSV
-        </button>
+        <div className="flex gap-2">
+          <button className="btn btn-secondary btn-sm" onClick={() => exportDropsPdf(drops)}>
+            PDF
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => exportDropsExcel(drops)}>
+            Excel
+          </button>
+        </div>
       </div>
       <div style={{ overflowX: "auto" }}>
         <table className="table">

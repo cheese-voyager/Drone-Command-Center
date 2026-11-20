@@ -24,8 +24,8 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--target", default="udpout:127.0.0.1:14551",
                    help="harus cocok dengan MAVLINK_CONN di backend (udpin -> udpout)")
-    p.add_argument("--lat", type=float, default=-6.9175)    # sekitar Bandung
-    p.add_argument("--lon", type=float, default=107.6191)
+    p.add_argument("--lat", type=float, default=-6.8971983)    # kampus ITENAS Bandung
+    p.add_argument("--lon", type=float, default=107.636371)
     p.add_argument("--armed", action="store_true",
                    help="status armed + 4 motor berputar (tanpa ini motor diam di PWM 1000)")
     p.add_argument("--no-power-module", action="store_true",

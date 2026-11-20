@@ -36,6 +36,11 @@ export const TEST_TARGETS: { label: string; value: string }[] = [
   { label: "Semua motor (berurutan 1-4)", value: "all_motors" },
 ];
 
+export const DEFAULT_MAP_CENTER = {
+  lat: -6.8971983,
+  lon: 107.636371,
+};
+
 export const DEFAULT_DROP_CONFIG = {
   servo_channel: 9,
   thrust_percent: 70,

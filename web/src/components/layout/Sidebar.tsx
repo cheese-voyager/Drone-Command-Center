@@ -65,11 +65,11 @@ function IconSeed() {
   );
 }
 
-function IconHistory() {
+function IconFlight() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-      <path d="M3 3v5h5" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      <path d="m21 3-7 18-4-8-8-4 19-6z" />
+      <path d="m10 13 4-4" />
     </svg>
   );
 }
@@ -79,6 +79,17 @@ function IconVideo() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="2" y="6" width="13" height="12" rx="2" />
       <path d="m15 10 6-3v10l-6-3" />
+    </svg>
+  );
+}
+
+function IconWeather() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <circle cx="8" cy="9" r="4" />
+      <path d="M8 2v2M3.5 4.5 5 6M2 9h2M3.5 13.5 5 12" />
+      <path d="M14 18h5a4 4 0 0 0 .8-7.9A5.5 5.5 0 0 0 9 12" />
+      <path d="M13 21l-1 2M17 21l-1 2" />
     </svg>
   );
 }
@@ -106,8 +117,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const system: NavItem[] = [
     { to: "/battery", label: "Baterai", icon: <IconBattery /> },
     { to: "/seed", label: "Benih", icon: <IconSeed /> },
-    { to: "/history", label: "Riwayat Drop", icon: <IconHistory /> },
+    { to: "/flights", label: "Riwayat Terbang", icon: <IconFlight /> },
     { to: "/video", label: "Kamera", icon: <IconVideo /> },
+    { to: "/weather", label: "Cuaca", icon: <IconWeather /> },
     { to: "/settings", label: "Pengaturan", icon: <IconSettings /> },
   ];
 
