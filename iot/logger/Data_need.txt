@@ -1,0 +1,27 @@
+Battery	:	- Battery percentage
+		- Battery Ampere
+		- Battery Voltage
+		- Battery size/spec
+		- Battery Prediction
+Signal	: 	- Signal strength status
+		- Distance from GCS to Drone
+Speed	:	- Real-time Speed (m/s)
+		- Average Speed 
+		- Peak/Top speed
+		- Lowest speed (when already moving/flying or whatever)
+Distance: 	- Total distance TargetL
+		- Total distance Target Achieved
+		- Distance already covered
+		- Distance that were not covered yet
+		- Distance that cant be covered due to issue or cancelled plan
+Dropper:	- Seed-Bomb Carried
+		- Seed-Bomb Dropped
+		- Remaining Seed-Bomb
+		- Seed-Bomb Dropped Coordinate
+		- Dropped Seed-Bomb Time History
+		- Type of Seed-Bomb Carried
+		- Weight of Seed-Bomb individually or total
+IMU:		- IDK, add later when i done my research
+Camera:		- Live feed
+		- FPS if needed for graphical data
+		- Map
