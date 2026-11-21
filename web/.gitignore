@@ -2,8 +2,10 @@ node_modules
 dist
 dist-ssr
 *.local
-.env.local
-.env*.local
+.env
+.env.*
+!.env.example
+.vite/
 
 logs
 *.log
