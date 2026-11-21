@@ -47,6 +47,7 @@ MQTT_PRIORITY_COMMANDS = frozenset({"thruster-stop"})  # dijalankan langsung, ti
 
 # ---------- Riwayat drop ----------
 MAX_DROP_HISTORY = 1000
+MAV_STATUS_MESSAGE_HISTORY = 20
 
 # ---------- Isi awal config.json ----------
 DEFAULT_CONFIG: dict = {

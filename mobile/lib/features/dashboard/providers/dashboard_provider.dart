@@ -90,7 +90,7 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final next = await _repository.status();
       _status = next;
-      if (history.isEmpty) {
+      if (history.isEmpty && AppConfig.dummyMode.value) {
         history.seedDummy(next);
       } else {
         history.add(next);

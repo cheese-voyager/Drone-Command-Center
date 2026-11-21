@@ -1,0 +1,858 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:drone-command-center:mobile-status:v1",
+  "title": "Mobile DroneStatus payload",
+  "description": "Schema kontrak payload status untuk mobile Flutter. Field lama tetap dipertahankan; field baru bersifat opsional agar backend lama tetap kompatibel.",
+  "x-state": "draft",
+  "x-priority-legend": {
+    "P0": "keselamatan/diagnostics, implementasi pertama",
+    "P1": "navigasi dan misi",
+    "P2": "analisis dan reporting"
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["connected", "armed", "battery", "seed"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Versi kontrak payload. Belum dikirim backend lama."
+    },
+    "connected": {
+      "type": "boolean"
+    },
+    "armed": {
+      "type": "boolean"
+    },
+    "mode": {
+      "type": ["string", "null"],
+      "examples": ["STABILIZE", "GUIDED", "AUTO", "RTL", "LAND", "LOITER"]
+    },
+    "lat": {
+      "type": ["number", "null"],
+      "minimum": -90,
+      "maximum": 90
+    },
+    "lon": {
+      "type": ["number", "null"],
+      "minimum": -180,
+      "maximum": 180
+    },
+    "alt": {
+      "type": ["number", "null"],
+      "description": "Altitude relatif dari GLOBAL_POSITION_INT.relative_alt dalam meter."
+    },
+    "pitch": {
+      "type": ["number", "null"],
+      "description": "Derajat."
+    },
+    "roll": {
+      "type": ["number", "null"],
+      "description": "Derajat."
+    },
+    "yaw": {
+      "type": ["number", "null"],
+      "description": "Derajat 0-360 dari ATTITUDE.yaw."
+    },
+    "speed": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Groundspeed instan m/s dari VFR_HUD.groundspeed."
+    },
+    "avg_speed": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "voltage": {
+      "type": ["number", "null"],
+      "description": "Volt dari SYS_STATUS.voltage_battery."
+    },
+    "current": {
+      "type": ["number", "null"],
+      "description": "Ampere dari SYS_STATUS.current_battery atau battery.avg_current."
+    },
+    "gps_fix": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 6
+    },
+    "satellites": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "motors": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/motor"
+      }
+    },
+    "battery": {
+      "$ref": "#/$defs/batteryStatus"
+    },
+    "seed": {
+      "$ref": "#/$defs/seedStatus"
+    },
+    "time": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/timeInfo"
+        }
+      ],
+      "x-priority": "P2",
+      "x-mavlink": ["TIMESYNC", "GLOBAL_POSITION_INT.time_boot_ms"]
+    },
+    "power": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/powerInfo"
+        }
+      ],
+      "x-priority": "P0",
+      "x-mavlink": ["BATTERY_STATUS(147)", "POWER_STATUS(125)", "SYS_STATUS(1)"]
+    },
+    "gps": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/gpsInfo"
+        }
+      ],
+      "x-priority": "P1",
+      "x-mavlink": ["GPS_RAW_INT(24)", "GPS2_RAW(124)"]
+    },
+    "nav": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/navInfo"
+        }
+      ],
+      "x-priority": "P1",
+      "x-mavlink": ["GLOBAL_POSITION_INT(33)", "VFR_HUD(74)", "ATTITUDE(30)", "WIND_COV(231)"]
+    },
+    "health": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/healthInfo"
+        }
+      ],
+      "x-priority": "P0",
+      "x-mavlink": ["SYS_STATUS(1)", "EKF_STATUS_REPORT(193)", "VIBRATION(113)", "STATUSTEXT(253)"]
+    },
+    "mission": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/missionInfo"
+        }
+      ],
+      "x-priority": "P1",
+      "x-mavlink": ["MISSION_CURRENT(42)", "NAV_CONTROLLER_OUTPUT(62)", "MISSION_ITEM_INT(73)"]
+    },
+    "link": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/linkInfo"
+        }
+      ],
+      "x-priority": "P0",
+      "x-mavlink": ["RADIO_STATUS(109)", "RC_CHANNELS(65)", "/debug/mavlink"]
+    },
+    "servo": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/servoInfo"
+        }
+      ],
+      "x-priority": "P1",
+      "x-mavlink": ["SERVO_OUTPUT_RAW(36)", "COMMAND_ACK(77)"]
+    },
+    "messages": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/statusMessage"
+      },
+      "x-priority": "P0",
+      "x-mavlink": ["STATUSTEXT(253)"],
+      "description": "Pesan PreArm/failsafe/error terbaru. Kosong jika tidak ada pesan."
+    }
+  },
+  "$defs": {
+    "motor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pwm", "percent"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pwm": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2000
+        },
+        "percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "batteryStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capacity_mah", "used_mah", "remaining_mah", "remaining_percent", "low"],
+      "properties": {
+        "capacity_mah": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "used_mah": {
+          "type": "number",
+          "minimum": 0
+        },
+        "remaining_mah": {
+          "type": "number",
+          "minimum": 0
+        },
+        "remaining_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "avg_current": {
+          "type": ["number", "null"]
+        },
+        "estimated_minutes_left": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "low": {
+          "type": "boolean"
+        }
+      }
+    },
+    "seedStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loaded", "dropped", "remaining"],
+      "properties": {
+        "loaded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "timeInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "boot_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "gps_week": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gps_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "powerInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["SYS_STATUS", "BATTERY_STATUS", "mixed"]
+        },
+        "battery_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "energy_consumed_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "energy_capacity_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cell_voltages_v": {
+          "type": "array",
+          "maxItems": 14,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "temperature_c": {
+          "type": "number"
+        },
+        "load_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "usb_connected": {
+          "type": "boolean"
+        },
+        "power_brick_out": {
+          "type": "boolean"
+        }
+      }
+    },
+    "gpsInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fix_type": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "satellites_visible": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hdop": {
+          "type": "number",
+          "minimum": 0
+        },
+        "vdop": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alt_msl_m": {
+          "type": "number"
+        },
+        "speed_mps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cog_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "rtk_status": {
+          "type": "string",
+          "enum": ["none", "float", "fixed"]
+        }
+      }
+    },
+    "navInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "alt_amsl_m": {
+          "type": "number"
+        },
+        "alt_rel_m": {
+          "type": "number"
+        },
+        "airspeed_mps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "groundspeed_mps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "climb_mps": {
+          "type": "number"
+        },
+        "throttle_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "heading_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "cog_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "vx_mps": {
+          "type": "number"
+        },
+        "vy_mps": {
+          "type": "number"
+        },
+        "vz_mps": {
+          "type": "number"
+        },
+        "wind_speed_mps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "wind_direction_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "wind_source": {
+          "type": "string",
+          "enum": ["WIND_COV", "derived"]
+        },
+        "alt_agl_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alt_agl_source": {
+          "type": "string",
+          "enum": ["RANGEFINDER", "TERRAIN", "none"]
+        }
+      }
+    },
+    "healthInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prearm_ok": {
+          "type": "boolean"
+        },
+        "ekf_ok": {
+          "type": "boolean"
+        },
+        "ekf_flags": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sensor_present": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sensor_enabled": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sensor_health": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "vibration_x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "vibration_y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "vibration_z": {
+          "type": "number",
+          "minimum": 0
+        },
+        "clipping_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "comm_drop_rate": {
+          "type": "number",
+          "minimum": 0
+        },
+        "comm_errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failsafe": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "missionInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "current_wp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_wp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_wp_lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "next_wp_lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "wp_distance_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "target_bearing_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "nav_bearing_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "nav_roll_deg": {
+          "type": "number"
+        },
+        "nav_pitch_deg": {
+          "type": "number"
+        },
+        "xtrack_error_m": {
+          "type": "number"
+        },
+        "state": {
+          "type": "string",
+          "examples": ["IDLE", "AUTO", "GUIDED", "RTL", "LAND", "LOITER"]
+        }
+      }
+    },
+    "linkInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rssi": {
+          "type": "integer"
+        },
+        "remrssi": {
+          "type": "integer"
+        },
+        "noise": {
+          "type": "integer"
+        },
+        "remnoise": {
+          "type": "integer"
+        },
+        "rx_errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fixed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "txbuf_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "packet_loss_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "latency_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "message_rates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "avg_hz"],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "age_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "avg_hz": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "servoInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/servoChannel"
+          }
+        },
+        "last_drop": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "channel": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "pwm": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 2000
+            },
+            "ack_result": {
+              "type": "string",
+              "examples": ["ACCEPTED", "REJECTED", "FAILED", "UNKNOWN"]
+            },
+            "drop_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "servoChannel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channel", "pwm"],
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "pwm": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2000
+        },
+        "percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "function": {
+          "type": "string",
+          "description": "Nama fungsi servo dari parameter SERVOx_FUNCTION, mis. SeedDrop."
+        }
+      }
+    },
+    "statusMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "severity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7,
+          "description": "MAV_SEVERITY: 0=EMERGENCY ... 7=DEBUG."
+        },
+        "text": {
+          "type": "string"
+        },
+        "component": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "telemetrySample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time"],
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "alt": {
+          "type": "number"
+        },
+        "alt_agl_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0
+        },
+        "airspeed_mps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "climb_mps": {
+          "type": "number"
+        },
+        "heading_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "cog_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "voltage": {
+          "type": "number"
+        },
+        "current": {
+          "type": "number"
+        },
+        "battery_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "battery_remaining_mah": {
+          "type": "number",
+          "minimum": 0
+        },
+        "energy_consumed_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "seed_remaining": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gps_fix": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        },
+        "satellites": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hdop": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ekf_ok": {
+          "type": "boolean"
+        },
+        "rssi": {
+          "type": "integer"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "armed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "flightSession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "start", "end", "duration_s", "distance_km"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "distance_km": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_alt_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_alt_agl_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_speed_mps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "seeds_start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seeds_end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seeds_used": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "energy_consumed_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "drop_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "type": "string"
+        },
+        "sample_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

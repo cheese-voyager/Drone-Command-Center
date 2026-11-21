@@ -29,7 +29,8 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     final c = context.dcc;
-    final sessions = FlightSummary.sessions(widget.provider.samples);
+      final sessions = FlightSummary.sessions(widget.provider.samples, drops: widget.provider.drops);
+
     if (_selected != null && !sessions.any((s) => s.start == _selected!.start)) {
       _selected = null;
     }
@@ -189,6 +190,14 @@ class _HistoryPageState extends State<HistoryPage> {
                 label: Text('CSV', style: DccText.head(c.text, size: 11, weight: FontWeight.w700)),
               ),
             ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _exporting ? null : _exportFlightJson,
+                icon: const Icon(Icons.data_object_outlined, size: 15),
+                label: Text('JSON', style: DccText.head(c.text, size: 11, weight: FontWeight.w700)),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -232,8 +241,10 @@ class _HistoryPageState extends State<HistoryPage> {
               title: 'Detail sesi',
               padding: const EdgeInsets.all(12),
               child: Column(
-                children: [
-                  _Row(label: 'Mulai', value: _clock(selected.start)),
+                 children: [
+                   _Row(label: 'ID', value: selected.id),
+                   _Row(label: 'Mulai', value: _clock(selected.start)),
+
                   _Row(label: 'Durasi', value: '${selected.duration.inMinutes} menit'),
                   _Row(label: 'Jarak', value: '${selected.distanceKm.toStringAsFixed(3)} km'),
                   _Row(label: 'Benih', value: '${selected.seedsStart} -> ${selected.seedsEnd}'),
@@ -347,7 +358,8 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<void> _exportFlightPdf() async {
     setState(() => _exporting = true);
     try {
-      final sessions = FlightSummary.sessions(widget.provider.samples);
+    final sessions = FlightSummary.sessions(widget.provider.samples, drops: widget.provider.drops);
+
       final selected = _selected;
       final rows = _flightRows(selected).map((p) => [
             p.time.toIso8601String(),
@@ -383,10 +395,12 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<void> _exportFlightCsv() async {
     setState(() => _exporting = true);
     try {
+      final sessions = FlightSummary.sessions(widget.provider.samples, drops: widget.provider.drops);
+      final selected = _selected ?? (sessions.isEmpty ? null : sessions.first);
       await ReportExporter.csv(
         fileName: 'riwayat-penerbangan-${_stamp()}',
         headers: const ['Waktu', 'Latitude', 'Longitude', 'Alt m', 'Speed m/s', 'Baterai %'],
-        rows: _flightRows(_selected).map((p) => [
+        rows: _flightRows(selected).map((p) => [
               p.time.toIso8601String(),
               p.lat?.toStringAsFixed(7) ?? '',
               p.lon?.toStringAsFixed(7) ?? '',
@@ -398,6 +412,26 @@ class _HistoryPageState extends State<HistoryPage> {
       if (mounted) _snack('CSV penerbangan siap dibagikan.');
     } catch (e) {
       if (mounted) _snack('Gagal membuat CSV: $e', warn: true);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _exportFlightJson() async {
+    setState(() => _exporting = true);
+    try {
+      final sessions = FlightSummary.sessions(widget.provider.samples, drops: widget.provider.drops);
+      await ReportExporter.json(
+        fileName: 'riwayat-penerbangan-${_stamp()}',
+        data: <String, dynamic>{
+          'schema_version': 1,
+          'telemetry_samples': widget.provider.samples.map((p) => p.toJson()).toList(),
+          'flight_sessions': sessions.map((s) => s.toJson()).toList(),
+        },
+      );
+      if (mounted) _snack('JSON telemetry & sesi siap dibagikan.');
+    } catch (e) {
+      if (mounted) _snack('Gagal membuat JSON: $e', warn: true);
     } finally {
       if (mounted) setState(() => _exporting = false);
     }

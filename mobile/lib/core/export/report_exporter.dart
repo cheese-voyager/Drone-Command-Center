@@ -80,6 +80,14 @@ class ReportExporter {
     await _share(bytes, '$fileName.csv', 'text/csv', fileName);
   }
 
+  static Future<void> json({
+    required String fileName,
+    required Map<String, dynamic> data,
+  }) async {
+    final bytes = utf8.encode(const JsonEncoder.withIndent('  ').convert(data));
+    await _share(bytes, '$fileName.json', 'application/json', fileName);
+  }
+
   static pw.Widget _bar(ReportBar bar) {
     final max = bar.value > 0 ? bar.value : 1.0;
     final width = (180 * (bar.value / max)).clamp(2.0, 180.0).toDouble();

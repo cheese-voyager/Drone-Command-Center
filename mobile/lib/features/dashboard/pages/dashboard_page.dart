@@ -65,9 +65,15 @@ class DashboardPage extends StatelessWidget {
             StatusPill('Pixhawk', tone: s.connected ? PillTone.ok : PillTone.danger),
             StatusPill(gpsText, tone: s.gpsFix != null && s.gpsFix! >= 3 ? PillTone.ok : PillTone.warn),
             StatusPill(s.armed ? 'Armed' : 'Disarmed', tone: s.armed ? PillTone.danger : PillTone.info),
+            if (s.health.ekfOk != null)
+              StatusPill(s.health.ekfOk! ? 'EKF OK' : 'EKF WARN', tone: s.health.ekfOk! ? PillTone.ok : PillTone.warn),
+            if (s.link.rssi != null)
+              StatusPill('RSSI ${s.link.rssi}', tone: s.link.rssi! < 30 ? PillTone.warn : PillTone.info),
             if (provider.error != null) const StatusPill('Backend offline', tone: PillTone.danger),
           ],
         ),
+        const SizedBox(height: 10),
+        _P1SummaryPanel(status: s),
         const SizedBox(height: 10),
         HudPanel(
           title: 'Peta live',
@@ -113,6 +119,8 @@ class DashboardPage extends StatelessWidget {
             Expanded(child: _PowerCard(status: s)),
           ],
         ),
+        const SizedBox(height: 10),
+        _DiagnosticsPanel(status: s),
         const SizedBox(height: 10),
         HudPanel(
           padding: const EdgeInsets.all(12),
@@ -278,6 +286,205 @@ class _PowerCard extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _P1SummaryPanel extends StatelessWidget {
+  const _P1SummaryPanel({required this.status});
+
+  final DroneStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.dcc;
+    final gpsFix = status.gps.fixType ?? status.gpsFix;
+    final satellites = status.gps.satellitesVisible ?? status.satellites;
+    final gps = gpsFix == null
+        ? '--'
+        : '${gpsFix}D · ${satellites ?? '-'} sat · HDOP ${status.gps.hdop?.toStringAsFixed(2) ?? '--'}';
+    final nav = [
+      'ALT ${(status.nav.altRelM ?? status.alt ?? 0).toStringAsFixed(1)} m',
+      '${(status.nav.groundspeedMps ?? status.speed ?? 0).toStringAsFixed(1)} m/s',
+      '${(status.nav.headingDeg ?? status.yaw ?? 0).round()}°',
+    ].join(' · ');
+    final mission = status.mission.currentWp == null
+        ? (status.mission.state ?? status.mode ?? '--')
+        : 'WP ${status.mission.currentWp}/${status.mission.totalWp ?? '--'}'
+            ' · ${status.mission.state ?? status.mode ?? '--'}'
+            ' · ${status.mission.wpDistanceM?.round() ?? '--'} m';
+    final drop = status.servo.lastDrop;
+    final servo = drop == null
+        ? '${status.servo.channels.length} channel · IDLE'
+        : 'CH ${drop.channel} · ${drop.ackResult} · ${status.servo.channels.length} ch';
+
+    return HudPanel(
+      title: 'Navigasi & misi',
+      meta: status.mode ?? 'AUTO-CENTER',
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: _P1Metric(label: 'GPS', value: gps, color: c.info)),
+              const SizedBox(width: 10),
+              Expanded(child: _P1Metric(label: 'NAV', value: nav, color: c.accent)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: _P1Metric(label: 'MISI', value: mission, color: c.warn)),
+              const SizedBox(width: 10),
+              Expanded(child: _P1Metric(label: 'SERVO', value: servo, color: c.ok)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _P1Metric extends StatelessWidget {
+  const _P1Metric({required this.label, required this.value, required this.color});
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.dcc;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: c.inset,
+        border: Border.all(color: c.border),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: DccText.head(color, size: 8, weight: FontWeight.w700, ls: 14)),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: DccText.mono(c.text, size: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DiagnosticsPanel extends StatelessWidget {
+  const _DiagnosticsPanel({required this.status});
+
+  final DroneStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.dcc;
+    final ekf = status.health.ekfOk;
+    final vib = status.health.vibrationZ;
+    final rssi = status.link.rssi;
+    final latest = status.messages.isEmpty ? null : status.messages.last;
+    final energy = status.power.energyConsumedWh;
+
+    return HudPanel(
+      title: 'Diagnostik',
+      meta: status.power.source ?? 'MAVLINK',
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _DiagnosticMetric(
+                  label: 'EKF',
+                  value: ekf == null ? '--' : (ekf ? 'OK' : 'WARN'),
+                  color: ekf == null ? c.textMuted : (ekf ? c.ok : c.warn),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _DiagnosticMetric(
+                  label: 'RSSI',
+                  value: rssi == null ? '--' : '$rssi',
+                  color: rssi == null ? c.textMuted : (rssi < 30 ? c.warn : c.ok),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _DiagnosticMetric(
+                  label: 'VIB Z',
+                  value: vib == null ? '--' : vib.toStringAsFixed(2),
+                  color: vib == null ? c.textMuted : (vib > 2 ? c.warn : c.ok),
+                ),
+              ),
+            ],
+          ),
+          if (status.health.failsafe.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: withA(c.danger, 0.1),
+                border: Border.all(color: withA(c.danger, 0.5)),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                status.health.failsafe.join(' · '),
+                style: DccText.mono(c.danger, size: 10),
+              ),
+            ),
+          ],
+          if (latest != null) ...[
+            const SizedBox(height: 10),
+            _Mini('PESAN', latest.text),
+          ],
+          if (status.power.remainingPercent != null) ...[
+            const SizedBox(height: 10),
+            _Mini(
+              'BATERAI AP',
+              '${status.power.remainingPercent!.round()}%'
+              '${energy == null ? '' : ' · ${energy.toStringAsFixed(1)} Wh'}',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DiagnosticMetric extends StatelessWidget {
+  const _DiagnosticMetric({required this.label, required this.value, required this.color});
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.dcc;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: c.inset,
+        border: Border.all(color: c.border),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(), style: DccText.head(c.textMuted, size: 8, ls: 12)),
+          const SizedBox(height: 3),
+          Text(value, style: DccText.mono(color, size: 13, weight: FontWeight.w700)),
         ],
       ),
     );
