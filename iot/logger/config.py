@@ -4,6 +4,12 @@
 USB_BAUD = 115200      # USB langsung ke Pixhawk (baud sebenarnya diabaikan)
 TELEM_BAUD = 57600     # Radio telemetry SiK/3DR
 
+# Port default router telemetry (UDP)
+ROUTER_HOST = "127.0.0.1"
+ROUTER_PORT_MP = 14550      # Mission Planner (standard GCS UDP port)
+ROUTER_PORT_LOGGER = 14552  # Logger Python (main.py) - port 14552 bebas konflik
+ROUTER_PORT_IN = 0          # 0 = Port dinamis/otomatis OS (mencegah WinError 10048)
+
 # Frekuensi stream default (Hz) sesuai jenis koneksi
 STREAM_RATE_USB = 4    # cukup untuk csv-rate 1 Hz (Nyquist)
 STREAM_RATE_TELEM = 2  # bandwidth radio kecil, jangan tinggi-tinggi
