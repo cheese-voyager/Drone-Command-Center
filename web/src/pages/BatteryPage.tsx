@@ -8,6 +8,7 @@ import { LineChart } from "../components/charts/LineChart";
 import { LiveDroneStrip } from "../components/telemetry/LiveDroneStrip";
 import { exportBatteryExcel, exportBatteryPdf } from "../utils/reports";
 import { fmtMinutes, fmtNumber } from "../utils/format";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function BatteryPage() {
   const drone = useDroneStore((state) => state.status);
@@ -18,20 +19,48 @@ export function BatteryPage() {
 
   return (
     <div className="page-fit">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Baterai</h1>
-          <p className="page-sub">Status baterai, konsumsi daya, dan konfigurasi kapasitas.</p>
-        </div>
-        <div className="page-actions">
-          <button className="btn btn-secondary" onClick={() => exportBatteryPdf(history, battery)} disabled={history.length === 0}>
-            Unduh PDF
-          </button>
-          <button className="btn btn-secondary" onClick={() => exportBatteryExcel(history, battery)} disabled={history.length === 0}>
-            Unduh Excel
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Kesehatan armada"
+        title="Baterai dan daya"
+        description="Pantau kapasitas, tegangan, arus, dan estimasi waktu terbang. Riwayat sampel membantu melihat kecenderungan konsumsi daya selama misi."
+        detail={{ label: "Detail baterai dan daya", to: "/detail/baterai" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan baterai">
+            <span>
+              Sisa <b>{fmtNumber(battery?.remaining_percent ?? null, 0)}%</b>
+            </span>
+            <span>
+              Tegangan <b>{fmtNumber(drone?.voltage ?? null, 1)} V</b>
+            </span>
+            <span>
+              Arus <b>{fmtNumber(drone?.current ?? null)} A</b>
+            </span>
+            <span>
+              Estimasi <b>{fmtMinutes(minutesLeft)}</b>
+            </span>
+            <span>
+              Sampel <b>{history.length}</b>
+            </span>
+          </div>
+        }
+        source="MQTT status · telemetri browser"
+        legend={[
+          { label: "Sisa", tone: "ok" },
+          { label: "Tegangan", tone: "info" },
+          { label: "Arus", tone: "warn" },
+        ]}
+        actions={
+          <>
+            <button className="btn btn-secondary btn-sm" onClick={() => exportBatteryPdf(history, battery)} disabled={history.length === 0}>
+              Ekspor PDF
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={() => exportBatteryExcel(history, battery)} disabled={history.length === 0}>
+              Ekspor Excel
+            </button>
+          </>
+        }
+      />
 
       <LiveDroneStrip />
 

@@ -13,6 +13,8 @@ import { useDroneStore } from "../store/droneStore";
 import { useWeather } from "../hooks/useWeather";
 import { DEFAULT_MAP_CENTER, GPS_FIX_NAMES } from "../utils/constants";
 import { fmtCoord, fmtNumber } from "../utils/format";
+import { DetailLink } from "../components/detail/DetailLink";
+import { PageHeader } from "../components/layout/PageHeader";
 
 function Ico({ d }: { d: string }) {
   return (
@@ -49,6 +51,40 @@ export function DashboardPage() {
       {!backendOnline ? <div className="banner banner-warning">Backend offline. Telemetri akan ditandai basi.</div> : null}
       {stale ? <div className="banner banner-warning">Data telemetri belum diperbarui. Cek koneksi backend.</div> : null}
 
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Operasional drone"
+        title="Dashboard"
+        description="Ringkasan langsung seluruh subsistem drone. Pantau telemetri, peta, payload, daya, dan cuaca dari satu layar, lalu buka detail tiap fitur untuk data lengkap."
+        detail={{ label: "Detail status", to: "/detail/status" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan drone">
+            <span>
+              Mode <b>{drone?.mode ?? "-"}</b>
+            </span>
+            <span>
+              Baterai <b>{fmtNumber(battery?.remaining_percent ?? null, 0)}%</b>
+            </span>
+            <span>
+              GPS <b>{fixLabel}</b>
+            </span>
+            <span>
+              Ketinggian <b>{fmtNumber(drone?.alt ?? null)} m</b>
+            </span>
+            <span>
+              Kecepatan <b>{fmtNumber(drone?.speed ?? null)} m/s</b>
+            </span>
+          </div>
+        }
+        source="MQTT status · telemetri browser"
+        legend={[
+          { label: "Telemetri", tone: "info" },
+          { label: "Peta", tone: "drone" },
+          { label: "Drop", tone: "drop" },
+          { label: "Cuaca", tone: "weather" },
+        ]}
+      />
+
       <div className="dash-grid">
         <div className="dk-kpi">
           <Stat label="Ketinggian" value={fmtNumber(drone?.alt ?? null)} unit="m" sub={`Rata-rata ${fmtNumber(drone?.avg_speed ?? null)} m/s`} icon={<Ico d="m3 20 6-10 4 6 3-4 5 8z" />} />
@@ -58,14 +94,14 @@ export function DashboardPage() {
           <Stat label="Tegangan" value={fmtNumber(drone?.voltage ?? null, 1)} unit="V" sub={`${fmtNumber(drone?.current ?? null)} A · rata-rata ${fmtNumber(battery?.avg_current ?? null)} A`} icon={<Ico d="M13 2 4 14h7l-1 8 9-12h-7z" />} />
         </div>
 
-        <Card title="Peta live" meta="Auto-center" className="dk-map">
+        <Card title="Peta langsung" meta="Auto-center" className="dk-map" actions={<DetailLink to="/detail/peta" label="Buka detail peta" />}>
           <DroneMap center={mapCenter} zoom={17} className="hero">
             <SiteMarker site={DEFAULT_MAP_CENTER} label="ITENAS Bandung" />
           </DroneMap>
         </Card>
 
         <div className="dk-bottom">
-          <Card title="Output motor" meta="4 motor">
+          <Card title="Output motor" meta="4 motor" actions={<DetailLink to="/detail/thruster" label="Buka detail thruster" />}>
             {motors ? (
               <div className="motor-grid">
                 {motors.map((m) => (
@@ -82,7 +118,7 @@ export function DashboardPage() {
               <p className="muted">Belum ada data motor.</p>
             )}
           </Card>
-          <Card title="Tebar benih">
+          <Card title="Drop benih" actions={<DetailLink to="/detail/drop" label="Buka detail drop benih" />}>
             <div className="flex" style={{ flexDirection: "column", gap: "6px" }}>
               <DropButton />
               <p className="hint">Dialog konfirmasi muncul sebelum drop.</p>
@@ -94,7 +130,7 @@ export function DashboardPage() {
 
         <div className="dk-side">
           <ImuAttitude pitch={drone?.pitch ?? null} roll={drone?.roll ?? null} yaw={drone?.yaw ?? null} />
-          <Card title="Daya" meta="Baterai">
+          <Card title="Daya" meta="Baterai" actions={<DetailLink to="/detail/baterai" label="Buka detail baterai" />}>
             <div className="flex center" style={{ gap: "var(--space-3)" }}>
               <BatteryGauge percent={battery?.remaining_percent ?? 0} size={96} />
               <div className="flex" style={{ flexDirection: "column", gap: "6px", minWidth: 0 }}>

@@ -1,0 +1,9 @@
+export { BatteryDetailPage } from "./BatteryDetail";
+export { DropDetailPage } from "./DropDetail";
+export { FlightDetailPage } from "./FlightDetail";
+export { MapDetailPage } from "./MapDetail";
+export { SeedDetailPage } from "./SeedDetail";
+export { StatusDetailPage } from "./StatusDetail";
+export { ThrusterDetailPage } from "./ThrusterDetail";
+export { VideoDetailPage } from "./VideoDetail";
+export { WeatherDetailPage } from "./WeatherDetail";

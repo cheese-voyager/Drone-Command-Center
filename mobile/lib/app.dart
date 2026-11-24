@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/dashboard/providers/dashboard_provider.dart';
 import 'features/shell/app_shell.dart';
 
 class DccApp extends StatefulWidget {
-  const DccApp({super.key});
+  const DccApp({super.key, this.provider});
+
+  final DashboardProvider? provider;
 
   @override
   State<DccApp> createState() => _DccAppState();
@@ -29,7 +32,7 @@ class _DccAppState extends State<DccApp> {
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),
         themeMode: mode,
-        home: AppShell(themeMode: _themeMode),
+        home: AppShell(themeMode: _themeMode, provider: widget.provider),
       ),
     );
   }

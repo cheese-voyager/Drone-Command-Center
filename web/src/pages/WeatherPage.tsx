@@ -8,6 +8,7 @@ import { DEFAULT_MAP_CENTER } from "../utils/constants";
 import { fmtCoord } from "../utils/format";
 import { isValidCoord } from "../utils/geo";
 import { assessSlot, fmtSlotClock, fmtSlotDay, pickCurrentSlot, windText } from "../utils/weather";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function WeatherPage() {
   const status = useDroneStore((state) => state.status);
@@ -27,27 +28,55 @@ export function WeatherPage() {
   const weather = useWeather(lat, lon);
   const current = pickCurrentSlot(weather.slots);
   const currentRisk = assessSlot(current);
+  const riskLabel = currentRisk.level === "ok" ? "Aman" : currentRisk.level === "warn" ? "Waspada" : "Tidak aman";
+  const locationLabel = weatherUseManual
+    ? "Koordinat manual"
+    : usingDefault
+      ? "ITENAS Bandung"
+      : "GPS drone";
   const loading = weather.status === "loading";
 
   return (
     <div className="page-fit">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Cuaca</h1>
-          <p className="page-sub">
-            Prakiraan BMKG untuk{" "}
-            {weatherUseManual ? "koordinat manual" : usingDefault ? "lokasi default ITENAS Bandung" : "posisi GPS drone"}.
-          </p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn btn-secondary" onClick={weather.reload} disabled={loading || lat === null || lon === null}>
-            {loading ? "Memuat..." : "Muat ulang"}
-          </button>
-          <Link className="btn btn-secondary" to="/settings">
-            Atur lokasi
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Kondisi lingkungan"
+        title="Cuaca"
+        description="Prakiraan BMKG untuk lokasi misi, lengkap dengan kondisi saat ini dan penilaian risiko penerbangan. Sumber lokasi dapat diubah melalui Pengaturan."
+        detail={{ label: "Detail cuaca", to: "/detail/cuaca" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan cuaca">
+            <span>
+              Lokasi <b>{locationLabel}</b>
+            </span>
+            <span>
+              Slot <b>{weather.slots.length}</b>
+            </span>
+            <span>
+              Risiko <b>{riskLabel}</b>
+            </span>
+            <span>
+              Koordinat <b>{lat !== null && lon !== null ? fmtCoord(lat, lon) : "-"}</b>
+            </span>
+          </div>
+        }
+        source="BMKG · MQTT status"
+        legend={[
+          { label: "Aman", tone: "ok" },
+          { label: "Waspada", tone: "warn" },
+          { label: "Prakiraan", tone: "weather" },
+        ]}
+        actions={
+          <>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={weather.reload} disabled={loading || lat === null || lon === null}>
+              {loading ? "Memuat…" : "Muat ulang"}
+            </button>
+            <Link className="btn btn-secondary btn-sm" to="/settings">
+              Atur lokasi
+            </Link>
+          </>
+        }
+      />
 
       {weatherUseManual && !manualValid ? (
         <div className="banner banner-error">
@@ -82,7 +111,7 @@ export function WeatherPage() {
                   <tr>
                     <th>Hari</th>
                     <th>Jam</th>
-                    <th>Cuaca</th>
+                    <th>Kondisi</th>
                     <th>Suhu</th>
                     <th>Angin</th>
                     <th>Lembap</th>

@@ -111,13 +111,13 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const operations: NavItem[] = [
     { to: "/", label: "Dashboard", icon: <IconDashboard /> },
     { to: "/map", label: "Peta", icon: <IconMap /> },
-    { to: "/drop", label: "Drop Benih", icon: <IconDrop /> },
-    { to: "/thruster", label: "Tes Thruster", icon: <IconThruster /> },
+    { to: "/drop", label: "Drop benih", icon: <IconDrop /> },
+    { to: "/thruster", label: "Tes thruster dan motor", icon: <IconThruster /> },
   ];
   const system: NavItem[] = [
     { to: "/battery", label: "Baterai", icon: <IconBattery /> },
     { to: "/seed", label: "Benih", icon: <IconSeed /> },
-    { to: "/flights", label: "Riwayat Terbang", icon: <IconFlight /> },
+    { to: "/flights", label: "Riwayat penerbangan", icon: <IconFlight /> },
     { to: "/video", label: "Kamera", icon: <IconVideo /> },
     { to: "/weather", label: "Cuaca", icon: <IconWeather /> },
     { to: "/settings", label: "Pengaturan", icon: <IconSettings /> },

@@ -7,6 +7,7 @@ import { useDroneStore } from "../store/droneStore";
 import { exportSeedExcel, exportSeedPdf } from "../utils/reports";
 import { GPS_FIX_NAMES } from "../utils/constants";
 import { fmtCoord, fmtInt, fmtNumber } from "../utils/format";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function SeedPage() {
   const status = useDroneStore((state) => state.status);
@@ -16,20 +17,46 @@ export function SeedPage() {
 
   return (
     <div className="page-fit">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Benih</h1>
-          <p className="page-sub">Jumlah benih yang dimuat, terdrop, dan sisa.</p>
-        </div>
-        <div className="page-actions">
-          <button className="btn btn-secondary" onClick={() => exportSeedPdf(seed, history)}>
-            Unduh PDF
-          </button>
-          <button className="btn btn-secondary" onClick={() => exportSeedExcel(seed, history)}>
-            Unduh Excel
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Inventaris payload"
+        title="Benih"
+        description="Pantau stok benih yang dimuat, jumlah yang sudah ditebar, dan sisa di hopper. Gunakan form pemuatan untuk memperbarui kapasitas sebelum misi."
+        detail={{ label: "Detail benih", to: "/detail/benih" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan benih">
+            <span>
+              Dimuat <b>{fmtInt(seed?.loaded)}</b>
+            </span>
+            <span>
+              Sudah ditebar <b>{fmtInt(seed?.dropped)}</b>
+            </span>
+            <span>
+              Sisa <b>{fmtInt(seed?.remaining)}</b>
+            </span>
+            <span>
+              Sisa kapasitas{" "}
+              <b>{seed === undefined ? "-" : `${fmtNumber(((seed?.remaining ?? 0) / total) * 100, 0)}%`}</b>
+            </span>
+          </div>
+        }
+        source="MQTT status · telemetri browser"
+        legend={[
+          { label: "Dimuat", tone: "info" },
+          { label: "Sudah ditebar", tone: "drop" },
+          { label: "Sisa", tone: "ok" },
+        ]}
+        actions={
+          <>
+            <button className="btn btn-secondary btn-sm" onClick={() => exportSeedPdf(seed, history)}>
+              Ekspor PDF
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={() => exportSeedExcel(seed, history)}>
+              Ekspor Excel
+            </button>
+          </>
+        }
+      />
 
       <LiveDroneStrip />
 
@@ -40,7 +67,7 @@ export function SeedPage() {
             <BarChart
               data={[
                 { label: "Dimuat", value: seed?.loaded ?? 0, color: "var(--info)" },
-                { label: "Di-drop", value: seed?.dropped ?? 0, color: "var(--warn)" },
+                { label: "Sudah ditebar", value: seed?.dropped ?? 0, color: "var(--warn)" },
                 { label: "Sisa", value: seed?.remaining ?? 0, color: "var(--ok)" },
               ]}
               height="100%"

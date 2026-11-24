@@ -45,7 +45,7 @@ export function ThrusterTestForm() {
 
   return (
     <div className="card card-pad">
-      <div className="section-title">Tes Thruster</div>
+      <div className="section-title">Tes thruster</div>
       <label className="label" htmlFor="thr-target">Yang dites</label>
       <select id="thr-target" className="input" value={target} onChange={(e) => setTarget(e.target.value as TestTarget)}>
         {TEST_TARGETS.map((t) => (

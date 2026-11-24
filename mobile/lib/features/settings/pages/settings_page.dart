@@ -4,9 +4,12 @@ import '../../../core/config/app_config.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/hud_panel.dart';
+import '../../dashboard/providers/dashboard_provider.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, required this.provider});
+
+  final DashboardProvider provider;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -60,7 +63,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: widget.provider,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final c = context.dcc;
+    final provider = widget.provider;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
       children: [
@@ -81,6 +92,29 @@ class _SettingsPageState extends State<SettingsPage> {
                   'Mengisi semua menu dengan payload berbentuk sama seperti backend: status, drop, MQTT, baterai, benih, cuaca, dan kamera.',
                   style: DccText.mono(c.textMuted, size: 10),
                 ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        HudPanel(
+          title: 'Status koneksi',
+          padding: const EdgeInsets.all(12),
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              StatusPill(
+                provider.backendOnline ? 'BACKEND ONLINE' : 'BACKEND OFFLINE',
+                tone: provider.backendOnline ? PillTone.ok : PillTone.danger,
+              ),
+              StatusPill(
+                provider.mqtt?.connected == true ? 'MQTT TERHUBUNG' : 'MQTT TIDAK TERHUBUNG',
+                tone: provider.mqtt?.connected == true ? PillTone.ok : PillTone.warn,
+              ),
+              StatusPill(
+                provider.status.connected ? 'PIXHAWK AKTIF' : 'PIXHAWK STANDBY',
+                tone: provider.status.connected ? PillTone.ok : PillTone.warn,
               ),
             ],
           ),

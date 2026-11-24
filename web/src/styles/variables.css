@@ -33,10 +33,10 @@
   --overlay: rgba(5, 9, 14, 0.78);
   --map-filter: invert(1) hue-rotate(180deg) brightness(0.62) contrast(0.95) saturate(0.55);
 
-  --radius: 4px;
-  --radius-sm: 3px;
-  --radius-lg: 4px;
-  --shadow: none;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -86,4 +86,5 @@
 
   --overlay: rgba(15, 23, 42, 0.45);
   --map-filter: none;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.09);
 }

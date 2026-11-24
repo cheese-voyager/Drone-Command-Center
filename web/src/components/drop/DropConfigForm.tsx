@@ -59,7 +59,7 @@ export function DropConfigForm() {
       />
       {error ? <span className="field-error" style={{ marginBottom: "var(--space-3)" }}>{error}</span> : null}
       <Button variant="primary" onClick={() => void save()} loading={busy}>
-        Simpan Pengaturan Drop
+        Simpan pengaturan drop
       </Button>
     </div>
   );

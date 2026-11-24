@@ -16,6 +16,7 @@ import { DEFAULT_MAP_CENTER } from "../utils/constants";
 import { exportFlightExcel, exportFlightPdf } from "../utils/reports";
 import { flightPathFromHistory, summarizeFlight } from "../utils/flight";
 import { fmtDuration, fmtNumber } from "../utils/format";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function MapPage() {
   const drone = useDroneStore((state) => state.status);
@@ -56,54 +57,74 @@ export function MapPage() {
 
   return (
     <div className="page-fit">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Peta</h1>
-          <p className="page-sub">Posisi drone, jejak terbang, dan titik drop.</p>
-        </div>
-        <div className="map-head-stats" aria-label="Ringkasan peta">
-          <span>
-            <i className="dot drone" />
-            Titik <b>{points.length}</b>
-          </span>
-          <span>
-            <i className="line" />
-            Jarak <b>{fmtNumber(summary.distance_km, 2)} km</b>
-          </span>
-          <span>
-            <i className="dot drop" />
-            Drop <b>{drops.length}</b>
-          </span>
-          <span>
-            Maks alt <b>{summary.max_alt === null ? "-" : `${fmtNumber(summary.max_alt, 0)} m`}</b>
-          </span>
-        </div>
-        <div className="page-actions">
-          <button
-            className="btn btn-secondary map-toggle"
-            aria-pressed={showWeather}
-            onClick={() => setShowWeather((value) => !value)}
-          >
-            Cuaca
-          </button>
-          <button
-            className="btn btn-secondary map-toggle"
-            aria-pressed={showCharts}
-            onClick={() => setShowCharts((value) => !value)}
-          >
-            Grafik
-          </button>
-          <button className="btn btn-secondary" onClick={toggleFullscreen}>
-            {fullscreen ? "Keluar penuh" : "Layar penuh"}
-          </button>
-          <button className="btn btn-secondary" onClick={() => exportFlightPdf(history, drops)} disabled={!canExport}>
-            Unduh PDF
-          </button>
-          <button className="btn btn-secondary" onClick={() => exportFlightExcel(history, drops)} disabled={!canExport}>
-            Unduh Excel
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Operasi geospasial"
+        title="Peta"
+        description={
+          <>
+            Pantau posisi drone, jejak terbang, dan sebaran titik drop dalam satu layar. Data diperbarui dari MQTT
+            status, riwayat telemetri browser, dan endpoint drops.
+          </>
+        }
+        detail={{ label: "Detail peta", to: "/detail/peta" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan peta">
+            <span>
+              <i className="dot drone" />
+              Titik <b>{points.length}</b>
+            </span>
+            <span>
+              <i className="line" />
+              Jarak <b>{fmtNumber(summary.distance_km, 2)} km</b>
+            </span>
+            <span>
+              <i className="dot drop" />
+              Drop <b>{drops.length}</b>
+            </span>
+            <span>
+              Maks alt <b>{summary.max_alt === null ? "-" : `${fmtNumber(summary.max_alt, 0)} m`}</b>
+            </span>
+            <span>
+              Status <b>{drone ? (drone.armed ? "Armed" : "Standby") : "Menunggu data"}</b>
+            </span>
+          </div>
+        }
+        source="MQTT · telemetri · GET /drops"
+        legend={[
+          { label: "Drone" },
+          { label: "Rute", tone: "route" },
+          { label: "Drop", tone: "drop" },
+          { label: "Cuaca", tone: "weather" },
+        ]}
+        actions={
+          <>
+            <button
+              className="btn btn-secondary btn-sm map-toggle"
+              aria-pressed={showWeather}
+              onClick={() => setShowWeather((value) => !value)}
+            >
+              Cuaca
+            </button>
+            <button
+              className="btn btn-secondary btn-sm map-toggle"
+              aria-pressed={showCharts}
+              onClick={() => setShowCharts((value) => !value)}
+            >
+              Grafik
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={toggleFullscreen}>
+              {fullscreen ? "Keluar layar penuh" : "Layar penuh"}
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={() => exportFlightPdf(history, drops)} disabled={!canExport}>
+              Ekspor PDF
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={() => exportFlightExcel(history, drops)} disabled={!canExport}>
+              Ekspor Excel
+            </button>
+          </>
+        }
+      />
 
       <LiveDroneStrip />
 

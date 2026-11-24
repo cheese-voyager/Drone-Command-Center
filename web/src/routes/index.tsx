@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
+import { DetailLayout } from "../components/layout/DetailLayout";
 import { BatteryPage } from "../pages/BatteryPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { DropControlPage } from "../pages/DropControlPage";
@@ -11,6 +12,17 @@ import { SettingsPage } from "../pages/SettingsPage";
 import { ThrusterTestPage } from "../pages/ThrusterTestPage";
 import { VideoPage } from "../pages/VideoPage";
 import { WeatherPage } from "../pages/WeatherPage";
+import {
+  BatteryDetailPage,
+  DropDetailPage,
+  FlightDetailPage,
+  MapDetailPage,
+  SeedDetailPage,
+  StatusDetailPage,
+  ThrusterDetailPage,
+  VideoDetailPage,
+  WeatherDetailPage,
+} from "../pages/detail/DetailPages";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +41,22 @@ export const router = createBrowserRouter([
       { path: "weather", element: <WeatherPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "*", element: <NotFoundPage /> },
+    ],
+  },
+  {
+    path: "/detail",
+    element: <DetailLayout />,
+    children: [
+      { index: true, element: <Navigate to="/detail/status" replace /> },
+      { path: "status", element: <StatusDetailPage /> },
+      { path: "peta", element: <MapDetailPage /> },
+      { path: "drop", element: <DropDetailPage /> },
+      { path: "thruster", element: <ThrusterDetailPage /> },
+      { path: "baterai", element: <BatteryDetailPage /> },
+      { path: "benih", element: <SeedDetailPage /> },
+      { path: "video", element: <VideoDetailPage /> },
+      { path: "cuaca", element: <WeatherDetailPage /> },
+      { path: "penerbangan", element: <FlightDetailPage /> },
     ],
   },
 ]);

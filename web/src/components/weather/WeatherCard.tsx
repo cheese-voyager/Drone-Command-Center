@@ -43,14 +43,14 @@ export function WeatherCard({
   const loading = weather.status === "loading";
 
   return (
-    <Card title="Cuaca area" meta="BMKG" className={className}>
+    <Card title="Prakiraan cuaca" meta="BMKG" className={className}>
       {lat === null || lon === null ? (
         <p className="muted">Menunggu posisi GPS drone untuk memuat prakiraan BMKG.</p>
       ) : weather.status === "error" ? (
         <div className="wx-state">
           <p className="banner banner-error">{weather.error}</p>
-          <button type="button" className="wx-reload" onClick={weather.reload}>
-            Coba lagi
+          <button type="button" className="btn btn-secondary btn-sm" onClick={weather.reload}>
+            Muat ulang
           </button>
         </div>
       ) : !current || !place ? (
@@ -67,7 +67,7 @@ export function WeatherCard({
                 {distance !== null ? ` — ${fmtDistance(distance)} dari ${locationLabel}` : ""}
               </div>
             </div>
-            <button type="button" className="wx-reload" onClick={weather.reload} disabled={loading}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={weather.reload} disabled={loading}>
               {loading ? "Memuat…" : "Muat ulang"}
             </button>
           </div>

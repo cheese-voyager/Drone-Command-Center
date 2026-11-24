@@ -72,11 +72,11 @@ class _BatteryPageState extends State<BatteryPage> {
       await ReportExporter.pdf(
         fileName: 'baterai-${_stamp()}',
         title: 'Laporan Penggunaan Baterai',
-        subtitle: 'Kapasitas ${battery.capacityMah} mAh · terpakai ${battery.usedMah.toStringAsFixed(0)} mAh · sisa ${battery.remainingMah.toStringAsFixed(0)} mAh',
+        subtitle: '${_capacityPill(battery)} · terpakai ${_milliampereHour(battery.usedMah, battery)} · sisa ${_milliampereHour(battery.remainingMah, battery)}',
         paragraphs: [
-          'Persentase sisa: ${battery.remainingPercent.toStringAsFixed(1)}%',
+          'Persentase sisa: ${battery.capacityMah > 0 ? '${battery.remainingPercent.toStringAsFixed(1)}%' : '--'}',
           'Arus rata-rata: ${battery.avgCurrent.toStringAsFixed(1)} A · tegangan: ${widget.provider.status.voltage?.toStringAsFixed(2) ?? '-'} V',
-          'Estimasi tersisa: ${battery.estimatedMinutesLeft?.round() ?? 0} menit · status: ${battery.low ? 'LOW BATTERY' : 'NORMAL'}',
+          'Estimasi tersisa: ${battery.capacityMah > 0 && battery.estimatedMinutesLeft != null ? '${battery.estimatedMinutesLeft!.round()} menit' : '--'} · status: ${battery.low ? 'LOW BATTERY' : 'NORMAL'}',
           'Jumlah sampel: ${samples.length}',
         ],
         bars: [
@@ -116,6 +116,12 @@ class _BatteryPageState extends State<BatteryPage> {
     }
   }
 
+  String _capacityPill(BatteryInfo battery) =>
+      battery.capacityMah > 0 ? '${battery.capacityMah} mAh' : 'Kapasitas belum diatur';
+
+  String _milliampereHour(double value, BatteryInfo battery) =>
+      battery.capacityMah > 0 ? '${value.round()} mAh' : '--';
+
   void _snack(String message, {bool warn = false}) {
     final c = context.dcc;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -150,7 +156,7 @@ class _BatteryPageState extends State<BatteryPage> {
           runSpacing: 6,
           children: [
             StatusPill('Baterai', tone: battery.low ? PillTone.danger : PillTone.ok),
-            StatusPill('${battery.capacityMah} mAh', tone: PillTone.info),
+            StatusPill(_capacityPill(battery), tone: battery.capacityMah > 0 ? PillTone.info : PillTone.warn),
             StatusPill('${samples.length} sampel', tone: PillTone.info),
           ],
         ),
@@ -202,7 +208,10 @@ class _BatteryPageState extends State<BatteryPage> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('${battery.remainingPercent.round()}%', style: DccText.mono(c.text, size: 20, weight: FontWeight.w700)),
+                        Text(
+                          battery.capacityMah > 0 ? '${battery.remainingPercent.round()}%' : '--',
+                          style: DccText.mono(c.text, size: 20, weight: FontWeight.w700),
+                        ),
                         Text('SISA', style: DccText.head(c.textMuted, size: 8, weight: FontWeight.w700, ls: 14)),
                       ],
                     ),
@@ -213,13 +222,18 @@ class _BatteryPageState extends State<BatteryPage> {
               Expanded(
                 child: Column(
                   children: [
-                    _Metric(label: 'Terpakai', value: '${battery.usedMah.toStringAsFixed(0)} mAh'),
+                    _Metric(label: 'Terpakai', value: _milliampereHour(battery.usedMah, battery)),
                     const SizedBox(height: 8),
-                    _Metric(label: 'Sisa kapasitas', value: '${battery.remainingMah.round()} mAh'),
+                    _Metric(label: 'Sisa kapasitas', value: _milliampereHour(battery.remainingMah, battery)),
                     const SizedBox(height: 8),
                     _Metric(label: 'Arus rata-rata', value: '${battery.avgCurrent.toStringAsFixed(1)} A'),
                     const SizedBox(height: 8),
-                    _Metric(label: 'Estimasi', value: '${battery.estimatedMinutesLeft?.round() ?? 0} menit'),
+                    _Metric(
+                      label: 'Estimasi',
+                      value: battery.capacityMah > 0 && battery.estimatedMinutesLeft != null
+                          ? '${battery.estimatedMinutesLeft!.round()} menit'
+                          : '--',
+                    ),
                   ],
                 ),
               ),

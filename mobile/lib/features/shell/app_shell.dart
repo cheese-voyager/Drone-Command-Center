@@ -30,22 +30,36 @@ const radialItems = <RadialItem>[
 ];
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.themeMode, this.onEmergencyStop});
+  const AppShell({
+    super.key,
+    required this.themeMode,
+    this.onEmergencyStop,
+    this.provider,
+  });
 
   final ValueNotifier<ThemeMode> themeMode;
   final VoidCallback? onEmergencyStop;
+  final DashboardProvider? provider;
 
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
-  final DashboardProvider _dashboard = DashboardProvider();
+  late final DashboardProvider _dashboard;
+  late final bool _ownsDashboard;
   String _page = 'dashboard';
 
   @override
+  void initState() {
+    super.initState();
+    _ownsDashboard = widget.provider == null;
+    _dashboard = widget.provider ?? DashboardProvider();
+  }
+
+  @override
   void dispose() {
-    _dashboard.dispose();
+    if (_ownsDashboard) _dashboard.dispose();
     super.dispose();
   }
 
@@ -70,7 +84,7 @@ class _AppShellState extends State<AppShell> {
       case 'video':
         return VideoPage(provider: _dashboard);
       case 'settings':
-        return const SettingsPage();
+        return SettingsPage(provider: _dashboard);
       default:
         return const SizedBox.shrink();
     }
@@ -82,10 +96,24 @@ class _AppShellState extends State<AppShell> {
 
   Future<void> _stop() async {
     widget.onEmergencyStop?.call();
-    final error = await _dashboard.emergencyStop();
+    final outcome = await _dashboard.emergencyStop();
     if (!mounted) return;
+    final c = context.dcc;
+    final stopped = outcome.result?.stopped ?? false;
+    final message = outcome.error ??
+        (stopped
+            ? 'STOP darurat berhasil: semua aktuator dihentikan.'
+            : 'STOP darurat terkirim. Status stop belum dikonfirmasi.');
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'STOP darurat terkirim ke backend.')),
+      SnackBar(
+        content: Text(
+          message,
+          style: DccText.mono(
+            outcome.error != null || !stopped ? c.warn : c.text,
+            size: 11,
+          ),
+        ),
+      ),
     );
   }
 

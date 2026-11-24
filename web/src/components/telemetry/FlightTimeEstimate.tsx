@@ -7,7 +7,7 @@ interface FlightTimeEstimateProps {
 export function FlightTimeEstimate({ minutes }: FlightTimeEstimateProps) {
   return (
     <div className="card card-pad">
-      <div className="section-title">Estimasi Waktu Terbang</div>
+      <div className="section-title">Estimasi waktu terbang</div>
       <div className="metric">
         <span className="metric-value small">{fmtMinutes(minutes)}</span>
         <span className="metric-sub">Berdasarkan arus rata-rata</span>

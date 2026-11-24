@@ -13,12 +13,12 @@ export function EmergencyStopButton() {
     try {
       const result = await send<ThrusterStopResponse>("thruster-stop");
       if (!result.stopped) {
-        push("STOP DARURAT TIDAK BERHASIL TERKIRIM. Putuskan daya secara manual!", "error");
+        push("Stop darurat tidak berhasil terkirim. Putuskan daya secara manual!", "error");
       } else {
         push("Thruster berhasil dihentikan.", "ok");
       }
     } catch {
-      push("STOP DARURAT GAGAL: putuskan daya secara manual!", "error");
+      push("Stop darurat gagal: putuskan daya secara manual!", "error");
     } finally {
       setBusy(false);
     }
@@ -26,7 +26,7 @@ export function EmergencyStopButton() {
 
   return (
     <button className="btn btn-danger" onClick={() => void run()} disabled={busy}>
-      STOP DARURAT
+      Stop darurat
     </button>
   );
 }

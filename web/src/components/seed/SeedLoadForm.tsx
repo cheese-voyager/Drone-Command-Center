@@ -29,7 +29,7 @@ export function SeedLoadForm() {
 
   return (
     <div className="card card-pad">
-      <div className="section-title">Muat Benih</div>
+      <div className="section-title">Muat benih</div>
       <label className="label" htmlFor="seed-loaded">Jumlah benih dimuat</label>
       <input
         id="seed-loaded"
@@ -41,7 +41,7 @@ export function SeedLoadForm() {
       />
       {error ? <span className="field-error" style={{ marginBottom: "var(--space-3)" }}>{error}</span> : null}
       <Button variant="primary" onClick={() => void save()} loading={busy}>
-        Muat Benih
+        Muat benih
       </Button>
     </div>
   );

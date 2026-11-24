@@ -7,6 +7,28 @@ import '../../../../shared/widgets/charts.dart';
 import '../../../../shared/widgets/hud_panel.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
 
+const motorTestMaxPercent = 30.0;
+
+bool isMotorTarget(String target) => target != 'seeder';
+
+String? validateThrusterTest({
+  required String target,
+  required bool armed,
+  required double thrustPercent,
+  required double durationS,
+}) {
+  if (thrustPercent < 0 || thrustPercent > 100 || durationS <= 0) {
+    return 'Thrust 0-100% dan durasi lebih dari 0 detik.';
+  }
+  if (isMotorTarget(target) && armed) {
+    return 'Tes motor ditolak saat drone ARMED. Disarm drone terlebih dahulu.';
+  }
+  if (isMotorTarget(target) && thrustPercent > motorTestMaxPercent) {
+    return 'Tes motor maksimal ${motorTestMaxPercent.round()}%.';
+  }
+  return null;
+}
+
 class ThrusterTestPage extends StatefulWidget {
   const ThrusterTestPage({super.key, required this.provider});
 
@@ -30,6 +52,7 @@ class _ThrusterTestPageState extends State<ThrusterTestPage> {
   late final TextEditingController _thrust;
   late final TextEditingController _duration;
   ThrusterResult? _result;
+  ThrusterResult? _stopResult;
 
   @override
   void initState() {
@@ -52,8 +75,14 @@ class _ThrusterTestPageState extends State<ThrusterTestPage> {
       _snack('Thrust 0-100% dan durasi lebih dari 0 detik.', warn: true);
       return;
     }
-    if (_target != 'seeder' && widget.provider.status.armed && thrust > 30) {
-      _snack('Tes motor hanya boleh saat disarm dan thrust maksimal 30%.', warn: true);
+    final validation = validateThrusterTest(
+      target: _target,
+      armed: widget.provider.status.armed,
+      thrustPercent: thrust,
+      durationS: duration,
+    );
+    if (validation != null) {
+      _snack(validation, warn: true);
       return;
     }
     final result = await widget.provider.testThruster(
@@ -71,9 +100,20 @@ class _ThrusterTestPageState extends State<ThrusterTestPage> {
   }
 
   Future<void> _stop() async {
-    final error = await widget.provider.emergencyStop();
+    final outcome = await widget.provider.emergencyStop();
     if (!mounted) return;
-    _snack(error ?? 'STOP darurat terkirim.', warn: error != null);
+    if (outcome.error != null) {
+      _snack(outcome.error!, warn: true);
+      return;
+    }
+    setState(() => _stopResult = outcome.result);
+    final stopped = outcome.result?.stopped ?? false;
+    _snack(
+      stopped
+          ? 'STOP darurat berhasil: semua aktuator dihentikan.'
+          : 'STOP darurat terkirim. Status stop belum dikonfirmasi.',
+      warn: !stopped,
+    );
   }
 
   void _snack(String message, {bool warn = false}) {
@@ -129,6 +169,8 @@ class _ThrusterTestPageState extends State<ThrusterTestPage> {
   @override
   Widget build(BuildContext context) {
     final c = context.dcc;
+    final isMotor = isMotorTarget(_target);
+    final motorBlocked = isMotor && widget.provider.status.armed;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
       children: [
@@ -175,19 +217,26 @@ class _ThrusterTestPageState extends State<ThrusterTestPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                _target == 'seeder'
+                !isMotor
                     ? 'Seeder memakai PWM servo channel 9.'
-                    : 'Motor hanya aman saat disarm dengan thrust maksimal 30%.',
+                    : 'Motor hanya aman saat disarm dengan thrust maksimal ${motorTestMaxPercent.round()}%.',
                 style: DccText.mono(c.textMuted, size: 10),
               ),
+              if (motorBlocked) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'ARMED · tes motor ditolak. Disarm drone terlebih dahulu.',
+                  style: DccText.mono(c.danger, size: 10, weight: FontWeight.w700),
+                ),
+              ],
               const SizedBox(height: 12),
               SizedBox(
                 height: 46,
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(backgroundColor: c.info, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))),
-                  onPressed: _test,
+                  onPressed: motorBlocked ? null : _test,
                   icon: const Icon(Icons.play_arrow, size: 17),
-                  label: Text('JALANKAN TES', style: DccText.head(Colors.white, size: 13, weight: FontWeight.w700, ls: 8)),
+                  label: Text(motorBlocked ? 'DISARM DULU' : 'JALANKAN TES', style: DccText.head(Colors.white, size: 13, weight: FontWeight.w700, ls: 8)),
                 ),
               ),
             ],
@@ -222,6 +271,22 @@ class _ThrusterTestPageState extends State<ThrusterTestPage> {
             label: Text('HENTIKAN SEMUA AKTUATOR', style: DccText.head(c.danger, size: 12, weight: FontWeight.w700, ls: 8)),
           ),
         ),
+        if (_stopResult != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              StatusPill(
+                _stopResult!.stopped == true ? 'STOP AKTIF' : 'STOP TIDAK DIKONFIRMASI',
+                tone: _stopResult!.stopped == true ? PillTone.ok : PillTone.warn,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _stopResult!.stopped == true ? 'Semua aktuator dihentikan.' : 'Backend belum mengonfirmasi kondisi berhenti.',
+                style: DccText.mono(c.textMuted, size: 10),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

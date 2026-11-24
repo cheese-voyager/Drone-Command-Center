@@ -8,7 +8,7 @@ export function LiveVideo() {
 
   return (
     <div className="video-frame">
-      <img src={videoSrc} alt="Live preview kamera" onError={() => setFailed(true)} />
+      <img src={videoSrc} alt="Pratinjau kamera" onError={() => setFailed(true)} />
       {failed ? <div className="empty">Kamera tidak tersedia. Cek /video di backend.</div> : null}
     </div>
   );

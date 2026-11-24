@@ -7,6 +7,7 @@ import { DropConfigForm } from "../components/drop/DropConfigForm";
 import { DropHistoryPanel } from "../components/drop/DropHistoryPanel";
 import { SeedCounter } from "../components/seed/SeedCounter";
 import { LiveDroneStrip } from "../components/telemetry/LiveDroneStrip";
+import { PageHeader } from "../components/layout/PageHeader";
 
 interface Check {
   label: string;
@@ -48,17 +49,41 @@ export function DropControlPage() {
     <div className="page-fit">
       {tab === "kontrol" && error ? <div className="banner banner-error">{error}</div> : null}
       {tab === "kontrol" && !backendOnline ? <div className="banner banner-warning">Backend offline. Drop tidak dapat dikirim.</div> : null}
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Drop benih</h1>
-          <p className="page-sub">
-            {tab === "kontrol"
-              ? "Atur thrust dan durasi, periksa kesiapan, lalu lakukan drop."
-              : "Ringkasan, sebaran, dan seluruh titik drop yang tercatat."}
-          </p>
-        </div>
-        <div className="page-actions">
-          <div className="flex gap-1" role="tablist" aria-label="Drop benih">
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Operasi payload"
+        title="Drop benih"
+        description={
+          tab === "kontrol"
+            ? "Atur thrust dan durasi, periksa kesiapan sistem, lalu jalankan drop dengan konfirmasi. Status akhir tetap ditentukan oleh backend."
+            : "Tinjau ringkasan, sebaran titik, dan seluruh catatan drop yang tersimpan di browser."
+        }
+        detail={{ label: "Detail drop benih", to: "/detail/drop" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan drop">
+            <span>
+              Kesiapan <b>{`${readyCount} / ${checks.length}`}</b>
+            </span>
+            <span>
+              Titik drop <b>{drops.length}</b>
+            </span>
+            <span>
+              Benih sisa <b>{remaining ?? "-"}</b>
+            </span>
+            <span>
+              Drop terakhir{" "}
+              <b>{latestDrop ? new Date(latestDrop.time * 1000).toLocaleTimeString("id-ID", { hour12: false }) : "-"}</b>
+            </span>
+          </div>
+        }
+        source="GET /drops · MQTT status · MQTT drop_event"
+        legend={[
+          { label: "Siap", tone: "ok" },
+          { label: "Perlu cek", tone: "warn" },
+          { label: "Titik drop", tone: "drop" },
+        ]}
+        actions={
+          <div className="flex gap-2" role="tablist" aria-label="Drop benih">
             <button
               type="button"
               role="tab"
@@ -78,11 +103,8 @@ export function DropControlPage() {
               Riwayat
             </button>
           </div>
-          <span className={`badge ${tab === "kontrol" && readyCount !== checks.length ? "badge-warn" : "badge-ok"}`}>
-            {tab === "kontrol" ? `${readyCount} / ${checks.length} siap` : `${drops.length} titik`}
-          </span>
-        </div>
-      </div>
+        }
+      />
 
       <LiveDroneStrip />
 

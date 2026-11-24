@@ -7,14 +7,14 @@ export function SeedCounter() {
   const seed = status?.seed;
 
   return (
-    <Card title="Benih">
+    <Card title="Ringkasan benih">
       <div className="grid grid-3">
         <div className="metric">
           <span className="metric-label">Dimuat</span>
           <span className="metric-value small">{fmtInt(seed?.loaded)}</span>
         </div>
         <div className="metric">
-          <span className="metric-label">Sudah di-drop</span>
+          <span className="metric-label">Sudah ditebar</span>
           <span className="metric-value small">{fmtInt(seed?.dropped)}</span>
         </div>
         <div className="metric">

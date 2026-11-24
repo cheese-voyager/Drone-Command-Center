@@ -15,14 +15,18 @@ class VideoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: AppConfig.dummyMode,
-      builder: (context, dummy, _) => _buildPage(context, dummy),
+    return AnimatedBuilder(
+      animation: provider,
+      builder: (context, _) => ValueListenableBuilder<bool>(
+        valueListenable: AppConfig.dummyMode,
+        builder: (context, dummy, _) => _buildPage(context, dummy),
+      ),
     );
   }
 
   Widget _buildPage(BuildContext context, bool dummy) {
     final c = context.dcc;
+    final status = provider.status;
     final url = AppConfig.uri(ApiEndpoints.video).toString();
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
@@ -31,7 +35,14 @@ class VideoPage extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            const StatusPill('Kamera', tone: PillTone.info),
+            StatusPill(
+              provider.backendOnline ? 'BACKEND ONLINE' : 'BACKEND OFFLINE',
+              tone: provider.backendOnline ? PillTone.ok : PillTone.danger,
+            ),
+            StatusPill(
+              status.connected ? 'PIXHAWK TERHUBUNG' : 'PIXHAWK BELUM TERHUBUNG',
+              tone: status.connected ? PillTone.ok : PillTone.warn,
+            ),
             if (dummy)
               const StatusPill('DUMMY FEED', tone: PillTone.info)
             else

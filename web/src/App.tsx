@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
+import { DroneProvider } from "./components/layout/DroneProvider";
 import { router } from "./routes";
 import { useSettingsStore } from "./store/settingsStore";
 
@@ -14,5 +15,9 @@ export default function App() {
     }
   }, [theme]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <DroneProvider>
+      <RouterProvider router={router} />
+    </DroneProvider>
+  );
 }

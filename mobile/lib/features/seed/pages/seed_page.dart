@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/export/report_exporter.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/charts.dart';
 import '../../../../shared/widgets/hud_panel.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
@@ -93,8 +94,8 @@ class _SeedPageState extends State<SeedPage> {
         rows: points.take(300).map((p) => [
               p.time.toIso8601String(),
               p.kind,
-              p.lat.toStringAsFixed(7),
-              p.lon.toStringAsFixed(7),
+              formatLatitude(p.lat, digits: 7, empty: ''),
+              formatLongitude(p.lon, digits: 7, empty: ''),
               '${p.remaining}',
             ]).toList(),
       );
@@ -115,8 +116,8 @@ class _SeedPageState extends State<SeedPage> {
         rows: _points().map((p) => [
               p.time.toIso8601String(),
               p.kind,
-              p.lat.toStringAsFixed(7),
-              p.lon.toStringAsFixed(7),
+              formatLatitude(p.lat, digits: 7, empty: ''),
+              formatLongitude(p.lon, digits: 7, empty: ''),
               '${p.remaining}',
             ]).toList(),
       );
@@ -151,8 +152,7 @@ class _SeedPageState extends State<SeedPage> {
         _ => 'Tidak tersedia',
       };
 
-  String _coord(double? lat, double? lon) =>
-      lat == null || lon == null ? '-' : '${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}';
+  String _coord(double? lat, double? lon) => formatCoordinate(lat, lon, empty: '-');
 
   @override
   Widget build(BuildContext context) {
@@ -285,7 +285,7 @@ class _SeedPageState extends State<SeedPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('${point.kind} · sisa ${point.remaining}', style: DccText.mono(c.text, size: 10, weight: FontWeight.w600)),
-                        Text('${point.lat.toStringAsFixed(6)}, ${point.lon.toStringAsFixed(6)}', style: DccText.mono(c.textMuted, size: 9)),
+                        Text(formatCoordinate(point.lat, point.lon), style: DccText.mono(c.textMuted, size: 9)),
                       ],
                     ),
                   ),

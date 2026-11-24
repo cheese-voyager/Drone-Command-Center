@@ -8,6 +8,78 @@ import '../../../../data/models/weather.dart';
 import '../../../../shared/widgets/hud_panel.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
 
+class WeatherRisk {
+  const WeatherRisk({
+    required this.label,
+    required this.tone,
+    required this.reason,
+  });
+
+  final String label;
+  final PillTone tone;
+  final String reason;
+}
+
+WeatherRisk? assessWeatherRisk(WeatherSlot? slot) {
+  if (slot == null) return null;
+
+  final rain = slot.rain;
+  final wind = slot.windSpeed;
+  final reasons = <String>[];
+  var danger = false;
+  var warn = false;
+
+  if (wind != null) {
+    if (wind >= 12) {
+      danger = true;
+      reasons.add('angin ${wind.toStringAsFixed(1)} m/s');
+    } else if (wind >= 7) {
+      warn = true;
+      reasons.add('angin ${wind.toStringAsFixed(1)} m/s');
+    } else {
+      reasons.add('angin ${wind.toStringAsFixed(1)} m/s');
+    }
+  }
+  if (rain != null) {
+    if (rain >= 5) {
+      danger = true;
+      reasons.add('hujan ${rain.toStringAsFixed(1)} mm');
+    } else if (rain >= 1) {
+      warn = true;
+      reasons.add('hujan ${rain.toStringAsFixed(1)} mm');
+    } else {
+      reasons.add('hujan ${rain.toStringAsFixed(1)} mm');
+    }
+  }
+
+  if (danger) {
+    return WeatherRisk(
+      label: 'CUACA BURUK',
+      tone: PillTone.danger,
+      reason: 'Tidak disarankan terbang: ${reasons.join(', ')}.',
+    );
+  }
+  if (warn) {
+    return WeatherRisk(
+      label: 'WASPADA',
+      tone: PillTone.warn,
+      reason: 'Perlu waspada: ${reasons.join(', ')}.',
+    );
+  }
+  if (rain == null || wind == null) {
+    return const WeatherRisk(
+      label: 'DATA CUACA TIDAK LENGKAP',
+      tone: PillTone.warn,
+      reason: 'Data angin dan hujan belum lengkap; penilaian otomatis dinonaktifkan.',
+    );
+  }
+  return WeatherRisk(
+    label: 'AMAN TERBANG',
+    tone: PillTone.ok,
+    reason: 'Angin ${wind.toStringAsFixed(1)} m/s · hujan ${rain.toStringAsFixed(1)} mm.',
+  );
+}
+
 class WeatherPage extends StatelessWidget {
   const WeatherPage({super.key, required this.provider});
 
@@ -99,7 +171,7 @@ class _WeatherViewState extends State<_WeatherView> {
     final c = context.dcc;
     final forecast = _forecast;
     final current = forecast?.current;
-    final risk = _risk(current);
+    final risk = assessWeatherRisk(current);
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
       children: [
@@ -112,7 +184,7 @@ class _WeatherViewState extends State<_WeatherView> {
             else
               const StatusPill('BMKG live', tone: PillTone.info),
             if (widget.usingFallback) const StatusPill('Fallback ITENAS', tone: PillTone.warn),
-            if (risk != null) StatusPill(risk.$1, tone: risk.$2),
+            if (risk != null) StatusPill(risk.label, tone: risk.tone),
           ],
         ),
         const SizedBox(height: 10),
@@ -183,6 +255,17 @@ class _WeatherViewState extends State<_WeatherView> {
                         ),
                         const SizedBox(height: 8),
                         _Metric(label: 'Arah angin', value: current?.windDirection ?? '--'),
+                        if (risk != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            risk.reason,
+                            style: DccText.mono(
+                              risk.tone == PillTone.danger ? c.danger : (risk.tone == PillTone.ok ? c.ok : c.warn),
+                              size: 10,
+                              weight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
         ),
@@ -210,15 +293,6 @@ class _WeatherViewState extends State<_WeatherView> {
         ),
       ],
     );
-  }
-
-  (String, PillTone)? _risk(WeatherSlot? slot) {
-    if (slot == null) return null;
-    final rain = slot.rain ?? 0;
-    final wind = slot.windSpeed ?? 0;
-    if (rain >= 5 || wind >= 12) return ('CUACA BURUK', PillTone.danger);
-    if (rain >= 1 || wind >= 7) return ('WASPADA', PillTone.warn);
-    return ('AMAN TERBANG', PillTone.ok);
   }
 }
 

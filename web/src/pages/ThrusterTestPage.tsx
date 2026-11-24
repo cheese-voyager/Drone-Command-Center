@@ -5,23 +5,47 @@ import { ThrusterTestForm } from "../components/thruster/ThrusterTestForm";
 import { BarChart } from "../components/charts/BarChart";
 import { LiveDroneStrip } from "../components/telemetry/LiveDroneStrip";
 import { MOTOR_TEST_MAX_PERCENT } from "../utils/constants";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function ThrusterTestPage() {
   const backendOnline = useDroneStore((state) => state.backendOnline);
   const error = useDroneStore((state) => state.error);
   const armed = useDroneStore((state) => state.status?.armed ?? false);
+  const motorCount = useDroneStore((state) => state.status?.motors?.length ?? 0);
 
   return (
     <div className="page-fit">
       {error ? <div className="banner banner-error">{error}</div> : null}
       {!backendOnline ? <div className="banner banner-warning">Backend offline. Tes tidak dapat dikirim.</div> : null}
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Tes thruster &amp; motor</h1>
-          <p className="page-sub">Tes thruster penebar benih atau motor penggerak.</p>
-        </div>
-        <span className={`badge ${armed ? "badge-error" : "badge-ok"}`}>{armed ? "ARMED · tes motor ditolak" : "DISARMED"}</span>
-      </div>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Pemeliharaan aktuator"
+        title="Tes thruster dan motor"
+        description="Uji thruster penebar benih atau motor penggerak dengan batas daya aman. Tes motor hanya diperbolehkan saat drone dalam kondisi disarmed."
+        detail={{ label: "Detail thruster dan motor", to: "/detail/thruster" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan pengaman">
+            <span>
+              Pengaman <b>{armed ? "Armed" : "Disarmed"}</b>
+            </span>
+            <span>
+              Motor terdeteksi <b>{motorCount}</b>
+            </span>
+            <span>
+              Batas thrust <b>{MOTOR_TEST_MAX_PERCENT}%</b>
+            </span>
+            <span>
+              Backend <b>{backendOnline ? "Online" : "Offline"}</b>
+            </span>
+          </div>
+        }
+        source="MQTT status"
+        legend={[
+          { label: "Aman", tone: "ok" },
+          { label: "Tes dilarang", tone: "error" },
+          { label: "Output motor", tone: "info" },
+        ]}
+      />
 
       <LiveDroneStrip />
 
@@ -38,7 +62,7 @@ export function ThrusterTestPage() {
             <div className="check-row compact">
               <span className="mark ok" aria-hidden>1</span>
               <div className="grow">
-                Pastikan drone disarmed<small>Badge di atas harus DISARMED.</small>
+                Pastikan drone disarmed<small>Status pengaman di atas harus Disarmed.</small>
               </div>
             </div>
             <div className="check-row compact">

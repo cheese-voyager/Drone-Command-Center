@@ -299,7 +299,7 @@ export function exportSeedExcel(seed: SeedStatus | null | undefined, history: Te
         rows: [
           ["Parameter", "Nilai"],
           ["Dimuat", seed?.loaded ?? "-"],
-          ["Sudah di-drop", seed?.dropped ?? "-"],
+          ["Sudah ditebar", seed?.dropped ?? "-"],
           ["Sisa", seed?.remaining ?? "-"],
           ["Waktu ekspor", fmtDateTime(Date.now() / 1000)],
           ["Jarak sesi (km)", summary.distance_km.toFixed(3)],
@@ -319,7 +319,7 @@ export function exportSeedPdf(seed: SeedStatus | null | undefined, history: Tele
       subtitle: "Drone Command Center - status penebaran benih",
       summary: [
         ["Dimuat", String(seed?.loaded ?? "-")],
-        ["Sudah di-drop", String(seed?.dropped ?? "-")],
+        ["Sudah ditebar", String(seed?.dropped ?? "-")],
         ["Sisa", String(seed?.remaining ?? "-")],
         ["Waktu ekspor", fmtDateTime(Date.now() / 1000)],
         ["Jarak sesi", `${fmtNumber(summary.distance_km, 3)} km`],

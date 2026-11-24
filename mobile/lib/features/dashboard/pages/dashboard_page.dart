@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../data/models/drone_status.dart';
 import '../../../shared/widgets/hud_panel.dart';
+import '../../map/widgets/dcc_map.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/painters.dart';
 
@@ -52,7 +54,7 @@ class DashboardPage extends StatelessWidget {
     final seedFraction = (s.seed.loaded > 0 ? s.seed.remaining / s.seed.loaded : 0.0)
         .clamp(0.0, 1.0)
         .toDouble();
-    final coordinate = '${s.lat?.toStringAsFixed(6) ?? '--'}   ${s.lon?.toStringAsFixed(6) ?? '--'}';
+    final coordinate = formatCoordinate(s.lat, s.lon);
     final gpsText = s.gpsFix == null ? 'GPS --' : 'GPS ${s.gpsFix}D · ${s.satellites ?? '-'}';
 
     return ListView(
@@ -84,7 +86,16 @@ class DashboardPage extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                CustomPaint(painter: MapPainter(c)),
+                DccMap(
+                  status: s,
+                  drops: provider.drops,
+                  path: provider.samples,
+                  showControls: false,
+                  showLegend: false,
+                  showStatus: false,
+                  interactive: false,
+                  height: 170,
+                ),
                 Positioned(
                   left: 10,
                   top: 10,
@@ -100,15 +111,15 @@ class DashboardPage extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Row(children: [
-          Expanded(child: _Kpi(icon: Icons.terrain, label: 'Ketinggian', value: (s.alt ?? 0).toStringAsFixed(1), unit: 'm')),
+          Expanded(child: _Kpi(icon: Icons.terrain, label: 'Ketinggian', value: _value(s.nav.altRelM ?? s.alt), unit: 'm')),
           const SizedBox(width: 10),
-          Expanded(child: _Kpi(icon: Icons.speed, label: 'Kecepatan', value: (s.speed ?? 0).toStringAsFixed(1), unit: 'm/s')),
+          Expanded(child: _Kpi(icon: Icons.speed, label: 'Kecepatan', value: _value(s.nav.groundspeedMps ?? s.speed), unit: 'm/s')),
         ]),
         const SizedBox(height: 10),
         Row(children: [
-          Expanded(child: _Kpi(icon: Icons.explore_outlined, label: 'Heading', value: (s.yaw?.round() ?? 0).toString().padLeft(3, '0'), unit: '°')),
+          Expanded(child: _Kpi(icon: Icons.explore_outlined, label: 'Heading', value: _angle(s.nav.headingDeg ?? s.yaw), unit: '°')),
           const SizedBox(width: 10),
-          Expanded(child: _Kpi(icon: Icons.bolt, label: 'Tegangan', value: (s.voltage ?? 0).toStringAsFixed(1), unit: 'V')),
+          Expanded(child: _Kpi(icon: Icons.bolt, label: 'Tegangan', value: _value(s.voltage), unit: 'V')),
         ]),
         const SizedBox(height: 10),
         Row(
@@ -167,6 +178,13 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
+String _value(double? value) => value == null ? '--' : value.toStringAsFixed(1);
+
+String _angle(double? value) =>
+    value == null ? '--' : value.round().toString().padLeft(3, '0');
+
+String _angleLabel(double? value) => value == null ? '--' : '${_angle(value)}°';
+
 class _Kpi extends StatelessWidget {
   const _Kpi({required this.icon, required this.label, required this.value, required this.unit});
 
@@ -218,7 +236,8 @@ class _AttitudeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.dcc;
-    String sign(double v) => '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(1)}°';
+    String sign(double? v) =>
+        v == null ? '--' : '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(1)}°';
     return HudPanel(
       title: 'Attitude',
       padding: const EdgeInsets.all(10),
@@ -234,11 +253,11 @@ class _AttitudeCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Mini('Pitch', sign(status.pitch ?? 0)),
+                _Mini('Pitch', sign(status.pitch)),
                 const SizedBox(height: 4),
-                _Mini('Roll', sign(status.roll ?? 0)),
+                _Mini('Roll', sign(status.roll)),
                 const SizedBox(height: 4),
-                _Mini('Yaw', '${(status.yaw?.round() ?? 0).toString().padLeft(3, '0')}°'),
+                _Mini('Yaw', _angleLabel(status.nav.headingDeg ?? status.yaw)),
               ],
             ),
           ),
@@ -306,9 +325,9 @@ class _P1SummaryPanel extends StatelessWidget {
         ? '--'
         : '${gpsFix}D · ${satellites ?? '-'} sat · HDOP ${status.gps.hdop?.toStringAsFixed(2) ?? '--'}';
     final nav = [
-      'ALT ${(status.nav.altRelM ?? status.alt ?? 0).toStringAsFixed(1)} m',
-      '${(status.nav.groundspeedMps ?? status.speed ?? 0).toStringAsFixed(1)} m/s',
-      '${(status.nav.headingDeg ?? status.yaw ?? 0).round()}°',
+      'ALT ${_value(status.nav.altRelM ?? status.alt)} m',
+      '${_value(status.nav.groundspeedMps ?? status.speed)} m/s',
+      _angleLabel(status.nav.headingDeg ?? status.yaw),
     ].join(' · ');
     final mission = status.mission.currentWp == null
         ? (status.mission.state ?? status.mode ?? '--')

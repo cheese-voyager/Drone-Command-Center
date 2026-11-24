@@ -34,13 +34,13 @@ export function DropButton() {
   return (
     <>
       <Button variant="danger" onClick={() => setConfirming(true)} disabled={busy}>
-        Drop Sekarang
+        Drop sekarang
       </Button>
       <ConfirmDialog
         open={confirming}
-        title="Konfirmasi Drop"
+        title="Konfirmasi drop"
         message="Lepas semua kabel dan pastikan area drop aman. Drop akan mengurangi jumlah benih dan dicatat di riwayat."
-        confirmLabel="Jalankan Drop"
+        confirmLabel="Jalankan drop"
         busy={busy}
         onConfirm={() => void drop()}
         onCancel={() => setConfirming(false)}

@@ -4,6 +4,7 @@ import { LineChart } from "../components/charts/LineChart";
 import { LiveDroneStrip } from "../components/telemetry/LiveDroneStrip";
 import { useFlightLogStore } from "../store/flightLogStore";
 import { fmtCoord, fmtDateTime, fmtDuration, fmtInt, fmtNumber } from "../utils/format";
+import { PageHeader } from "../components/layout/PageHeader";
 
 export function FlightHistoryPage() {
   const sessions = useFlightLogStore((state) => state.sessions);
@@ -31,38 +32,42 @@ export function FlightHistoryPage() {
 
   return (
     <div className="page-fit">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Riwayat Penerbangan</h1>
-          <p className="page-sub">Sesi terbang, durasi, jarak, dan benih yang ditebar.</p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn btn-secondary" onClick={removeAll} disabled={flights.length === 0}>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Analitik penerbangan"
+        title="Riwayat penerbangan"
+        description="Arsip sesi terbang yang tersimpan di browser. Lihat durasi, jarak, benih yang sudah ditebar, lalu pilih sesi untuk membaca profil jalur dan koordinatnya."
+        detail={{ label: "Detail riwayat penerbangan", to: "/detail/penerbangan" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan riwayat">
+            <span>
+              Sesi <b>{flights.length}</b>
+            </span>
+            <span>
+              Total terbang <b>{fmtDuration(totalDuration)}</b>
+            </span>
+            <span>
+              Total jarak <b>{fmtNumber(totalDistance, 2)} km</b>
+            </span>
+            <span>
+              Benih ditebar <b>{fmtInt(totalSeeds)}</b>
+            </span>
+          </div>
+        }
+        source="localStorage browser"
+        legend={[
+          { label: "Sesi", tone: "info" },
+          { label: "Jarak", tone: "route" },
+          { label: "Benih", tone: "drop" },
+        ]}
+        actions={
+          <button type="button" className="btn btn-danger btn-sm" onClick={removeAll} disabled={flights.length === 0}>
             Hapus riwayat
           </button>
-        </div>
-      </div>
+        }
+      />
 
       <LiveDroneStrip />
-
-      <div className="grid grid-4" style={{ flex: "none" }}>
-        <div className="metric">
-          <span className="metric-label">Sesi</span>
-          <span className="metric-value small">{flights.length}</span>
-        </div>
-        <div className="metric">
-          <span className="metric-label">Total terbang</span>
-          <span className="metric-value small">{fmtDuration(totalDuration)}</span>
-        </div>
-        <div className="metric">
-          <span className="metric-label">Total jarak</span>
-          <span className="metric-value small">{fmtNumber(totalDistance, 2)} km</span>
-        </div>
-        <div className="metric">
-          <span className="metric-label">Benih ditebar</span>
-          <span className="metric-value small">{fmtInt(totalSeeds)}</span>
-        </div>
-      </div>
 
       <div className="fit-2col fit-flight-grid">
         <Card title="Sesi penerbangan" meta={`${flights.length} sesi`} className="fit-card">
@@ -137,7 +142,7 @@ export function FlightHistoryPage() {
                   <span className="metric-value small">{fmtNumber(selected.distance_km, 2)} km</span>
                 </div>
                 <div className="metric">
-                  <span className="metric-label">Benih ditebar</span>
+                  <span className="metric-label">Benih sudah ditebar</span>
                   <span className="metric-value small">{fmtInt(selected.seeds_dropped)}</span>
                 </div>
                 <div className="metric">

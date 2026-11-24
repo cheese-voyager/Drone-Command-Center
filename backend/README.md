@@ -42,6 +42,10 @@ backend/
 | `drop_history.py` | Simpan riwayat drop ke `drops.json` |
 | `mqtt_service.py` | Kirim status/event ke broker MQTT, terima perintah, kirim hasilnya |
 
+## Perubahan Telemetry P0–P2
+
+Payload status sudah diperluas dengan data diagnostics, navigasi, misi, dan servo tanpa menambah endpoint baru. Ringkasan field, sumber pesan MAVLink, kompatibilitas, dan cara verifikasi ada di [dokumentasi perubahan backend](../docs/backend-telemetry-changes.md). Kontrak lengkapnya ada di [mobile-status.schema.json](../contracts/mobile-status.schema.json).
+
 ## Langkah 1: Siapkan Raspberry Pi
 
 Butuh **Python 3.10 atau lebih baru** (Raspberry Pi OS Bookworm membawa 3.11).

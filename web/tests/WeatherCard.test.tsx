@@ -74,6 +74,6 @@ describe("WeatherCard", () => {
       />,
     );
     expect(screen.getByText("BMKG menolak permintaan")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Coba lagi" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Muat ulang" })).toBeInTheDocument();
   });
 });

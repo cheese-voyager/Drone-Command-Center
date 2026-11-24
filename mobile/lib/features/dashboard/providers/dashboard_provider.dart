@@ -41,7 +41,9 @@ class DashboardProvider extends ChangeNotifier {
   String? _error;
   bool _loading = true;
   bool _busy = false;
+  bool _disposed = false;
   int _ticks = 0;
+  int _generation = 0;
 
   DroneStatus get status => _status;
   List<TelemetrySample> get samples => history.samples;
@@ -54,41 +56,58 @@ class DashboardProvider extends ChangeNotifier {
   bool get backendOnline => AppConfig.dummyMode.value || (_error == null && !_loading);
   bool get droneConnected => _status.connected;
 
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
   void start() {
+    if (_disposed) return;
     _timer?.cancel();
     _poll();
     _timer = Timer.periodic(interval, (_) => _poll());
   }
 
-  void _onBackendUrlChanged() {
-    _repository.close();
-    _repository = DroneRepository();
+  void _resetState() {
     _status = DroneStatus.empty;
     history.clear();
     _drops = const [];
     _mqtt = null;
     _error = null;
     _loading = true;
+    _busy = false;
+  }
+
+  void _invalidate() {
+    _generation++;
+    _busy = false;
+  }
+
+  void _onBackendUrlChanged() {
+    if (_disposed) return;
+    _invalidate();
+    _repository.close();
+    _repository = DroneRepository();
+    _resetState();
     start();
   }
 
   void _onDummyModeChanged() {
-    _status = DroneStatus.empty;
-    history.clear();
-    _drops = const [];
-    _mqtt = null;
-    _error = null;
-    _loading = true;
+    if (_disposed) return;
+    _invalidate();
+    _resetState();
     _ticks = 0;
-    notifyListeners();
+    _notify();
     start();
   }
 
   Future<void> _poll() async {
-    if (_busy) return;
+    if (_disposed || _busy) return;
+    final generation = _generation;
+    final repository = _repository;
     _busy = true;
     try {
-      final next = await _repository.status();
+      final next = await repository.status();
+      if (_disposed || generation != _generation) return;
       _status = next;
       if (history.isEmpty && AppConfig.dummyMode.value) {
         history.seedDummy(next);
@@ -98,40 +117,76 @@ class DashboardProvider extends ChangeNotifier {
       _error = null;
       _ticks++;
       if (_ticks == 1 || _ticks % 10 == 0) {
-        await refreshDrops(silent: true);
-        await _refreshMqtt(silent: true);
+        await refreshDrops(
+          silent: true,
+          generation: generation,
+          repository: repository,
+        );
+        if (_disposed || generation != _generation) return;
+        await _refreshMqtt(
+          silent: true,
+          generation: generation,
+          repository: repository,
+        );
       }
     } on ApiException catch (e) {
+      if (_disposed || generation != _generation) return;
       _error = e.message;
     } catch (e) {
+      if (_disposed || generation != _generation) return;
       _error = 'Gagal membaca status: $e';
     } finally {
-      _busy = false;
-      _loading = false;
-      notifyListeners();
+      if (!_disposed && generation == _generation) {
+        _busy = false;
+        _loading = false;
+        _notify();
+      }
     }
   }
 
   void clearHistory() {
+    if (_disposed) return;
     history.clear();
-    notifyListeners();
+    _notify();
   }
 
-  Future<void> refreshDrops({bool silent = false}) async {
+  Future<void> refreshDrops({
+    bool silent = false,
+    int? generation,
+    DroneRepository? repository,
+  }) async {
+    final target = repository ?? _repository;
+    bool stale() => generation != null && generation != _generation;
+    if (_disposed || stale()) return;
     try {
-      _drops = await _repository.drops();
-      if (!silent) notifyListeners();
+      final next = await target.drops();
+      if (_disposed || stale()) return;
+      _drops = next;
+      if (!silent) _notify();
     } on ApiException catch (e) {
-      if (!silent) _error = e.message;
+      if (silent || _disposed || stale()) return;
+      _error = e.message;
+      _notify();
     } catch (e) {
-      if (!silent) _error = 'Gagal membaca riwayat: $e';
+      if (silent || _disposed || stale()) return;
+      _error = 'Gagal membaca riwayat: $e';
+      _notify();
     }
   }
 
-  Future<void> _refreshMqtt({bool silent = false}) async {
+  Future<void> _refreshMqtt({
+    bool silent = false,
+    int? generation,
+    DroneRepository? repository,
+  }) async {
+    final target = repository ?? _repository;
+    bool stale() => generation != null && generation != _generation;
+    if (_disposed || stale()) return;
     try {
-      _mqtt = await _repository.mqtt();
-      if (!silent) notifyListeners();
+      final next = await target.mqtt();
+      if (_disposed || stale()) return;
+      _mqtt = next;
+      if (!silent) _notify();
     } catch (_) {}
   }
 
@@ -139,15 +194,15 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final record = await _repository.drop();
       await refreshDrops(silent: true);
-      notifyListeners();
+      _notify();
       return record;
     } on ApiException catch (e) {
       _error = e.message;
-      notifyListeners();
+      _notify();
       return null;
     } catch (e) {
       _error = 'Gagal mengirim drop: $e';
-      notifyListeners();
+      _notify();
       return null;
     }
   }
@@ -158,7 +213,7 @@ class DashboardProvider extends ChangeNotifier {
         thrustPercent: thrustPercent,
         durationS: durationS,
       );
-      notifyListeners();
+      _notify();
       return null;
     } on ApiException catch (e) {
       return e.message;
@@ -171,7 +226,7 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final next = await _repository.loadSeed(loaded);
       _status = _status.copyWith(seed: next);
-      notifyListeners();
+      _notify();
       return null;
     } on ApiException catch (e) {
       return e.message;
@@ -183,7 +238,7 @@ class DashboardProvider extends ChangeNotifier {
   Future<String?> configureBattery(BatterySetup setup) async {
     try {
       await _repository.configureBattery(setup);
-      notifyListeners();
+      _notify();
       return null;
     } on ApiException catch (e) {
       return e.message;
@@ -203,32 +258,40 @@ class DashboardProvider extends ChangeNotifier {
         thrustPercent: thrustPercent,
         durationS: durationS,
       );
-      notifyListeners();
+      _notify();
       return result;
     } on ApiException catch (e) {
       _error = e.message;
-      notifyListeners();
+      _notify();
       return null;
     } catch (e) {
       _error = 'Gagal tes thruster: $e';
-      notifyListeners();
+      _notify();
       return null;
     }
   }
 
-  Future<String?> emergencyStop() async {
+  Future<({String? error, ThrusterResult? result})> emergencyStop() async {
     try {
-      await _repository.emergencyStop();
-      return null;
+      final result = await _repository.emergencyStop();
+      _notify();
+      return (error: null, result: result);
     } on ApiException catch (e) {
-      return e.message;
+      _error = e.message;
+      _notify();
+      return (error: e.message, result: null);
     } catch (e) {
-      return 'Gagal mengirim STOP: $e';
+      final message = 'Gagal mengirim STOP: $e';
+      _error = message;
+      _notify();
+      return (error: message, result: null);
     }
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    _generation++;
     _timer?.cancel();
     AppConfig.backendUrl.removeListener(_onBackendUrlChanged);
     AppConfig.dummyMode.removeListener(_onDummyModeChanged);

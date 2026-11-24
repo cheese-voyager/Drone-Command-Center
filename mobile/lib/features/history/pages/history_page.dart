@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/export/report_exporter.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../data/services/flight_summary.dart';
 import '../../../../data/services/telemetry_history.dart';
 import '../../../../shared/widgets/charts.dart';
@@ -25,6 +26,33 @@ class _HistoryPageState extends State<HistoryPage> {
   bool _byDay = false;
   FlightSession? _selected;
   bool _exporting = false;
+
+  Future<void> _clearHistory() async {
+    final c = context.dcc;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.raised,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6), side: BorderSide(color: withA(c.danger, 0.55))),
+        title: Text('KONFIRMASI HAPUS RIWAYAT', style: DccText.head(c.text, size: 15, weight: FontWeight.w700, ls: 8)),
+        content: Text(
+          'Seluruh sesi, sampel telemetri, dan drop pada perangkat ini akan dihapus.',
+          style: TextStyle(color: c.textSecondary),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('BATAL', style: DccText.head(c.textSecondary, size: 13))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.danger, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('HAPUS', style: DccText.head(Colors.white, size: 13, weight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    widget.provider.clearHistory();
+    setState(() => _selected = null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -272,10 +300,7 @@ class _HistoryPageState extends State<HistoryPage> {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(foregroundColor: c.danger, side: BorderSide(color: c.danger)),
-            onPressed: () {
-              widget.provider.clearHistory();
-              setState(() => _selected = null);
-            },
+            onPressed: _clearHistory,
             icon: const Icon(Icons.delete_outline, size: 16),
             label: Text('HAPUS RIWAYAT', style: DccText.head(c.danger, size: 11, weight: FontWeight.w700)),
           ),
@@ -311,8 +336,8 @@ class _HistoryPageState extends State<HistoryPage> {
         final time = DateTime.fromMillisecondsSinceEpoch((d.time * 1000).round());
         return [
           time.toIso8601String(),
-          d.lat?.toStringAsFixed(7) ?? '-',
-          d.lon?.toStringAsFixed(7) ?? '-',
+          formatLatitude(d.lat, digits: 7, empty: '-'),
+          formatLongitude(d.lon, digits: 7, empty: '-'),
           d.thrust.toStringAsFixed(1),
           d.duration.toStringAsFixed(2),
         ];
@@ -341,8 +366,8 @@ class _HistoryPageState extends State<HistoryPage> {
         headers: const ['Waktu', 'Latitude', 'Longitude', 'Thrust %', 'Durasi s'],
         rows: widget.provider.drops.map((d) => [
               DateTime.fromMillisecondsSinceEpoch((d.time * 1000).round()).toIso8601String(),
-              d.lat?.toStringAsFixed(7) ?? '',
-              d.lon?.toStringAsFixed(7) ?? '',
+              formatLatitude(d.lat, digits: 7, empty: ''),
+              formatLongitude(d.lon, digits: 7, empty: ''),
               d.thrust.toStringAsFixed(1),
               d.duration.toStringAsFixed(2),
             ]).toList(),
@@ -363,8 +388,8 @@ class _HistoryPageState extends State<HistoryPage> {
       final selected = _selected;
       final rows = _flightRows(selected).map((p) => [
             p.time.toIso8601String(),
-            p.lat?.toStringAsFixed(7) ?? '-',
-            p.lon?.toStringAsFixed(7) ?? '-',
+            formatLatitude(p.lat, digits: 7, empty: '-'),
+            formatLongitude(p.lon, digits: 7, empty: '-'),
             p.alt?.toStringAsFixed(1) ?? '-',
             p.speed?.toStringAsFixed(1) ?? '-',
             p.batteryPercent?.toStringAsFixed(1) ?? '-',
@@ -402,8 +427,8 @@ class _HistoryPageState extends State<HistoryPage> {
         headers: const ['Waktu', 'Latitude', 'Longitude', 'Alt m', 'Speed m/s', 'Baterai %'],
         rows: _flightRows(selected).map((p) => [
               p.time.toIso8601String(),
-              p.lat?.toStringAsFixed(7) ?? '',
-              p.lon?.toStringAsFixed(7) ?? '',
+              formatLatitude(p.lat, digits: 7, empty: ''),
+              formatLongitude(p.lon, digits: 7, empty: ''),
               p.alt?.toStringAsFixed(2) ?? '',
               p.speed?.toStringAsFixed(2) ?? '',
               p.batteryPercent?.toStringAsFixed(2) ?? '',

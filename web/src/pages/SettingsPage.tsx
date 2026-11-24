@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Card } from "../components/ui/Card";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useBackendUrl } from "../hooks/useBackendUrl";
 import { useDroneStore } from "../store/droneStore";
 import { useSettingsStore } from "../store/settingsStore";
@@ -9,6 +9,7 @@ import { isValidCoord } from "../utils/geo";
 export function SettingsPage() {
   const { apiUrl, username, password, brokerHost, setApiUrl, setUsername, setPassword, setBrokerHost } = useBackendUrl();
   const client = useDroneStore((state) => state.client);
+  const backendOnline = useDroneStore((state) => state.backendOnline);
   const weatherUseManual = useSettingsStore((state) => state.weatherUseManual);
   const weatherLat = useSettingsStore((state) => state.weatherLat);
   const weatherLon = useSettingsStore((state) => state.weatherLon);
@@ -30,12 +31,43 @@ export function SettingsPage() {
 
   return (
     <div className="page-fit">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Pengaturan</h1>
-          <p className="page-sub">Koneksi backend dan broker MQTT.</p>
-        </div>
-      </div>
+      <PageHeader
+        className="feature-page-head"
+        eyebrow="Konfigurasi sistem"
+        title="Pengaturan"
+        description="Atur alamat backend, kredensial MQTT, dan sumber lokasi prakiraan cuaca. Perubahan disimpan di browser perangkat ini."
+        detail={{ label: "Detail cuaca", to: "/detail/cuaca" }}
+        meta={
+          <div className="page-stats" aria-label="Ringkasan pengaturan">
+            <span>
+              Backend <b>{backendOnline ? "Online" : "Offline"}</b>
+            </span>
+            <span>
+              MQTT <b>{client ? "Terhubung" : "Belum terhubung"}</b>
+            </span>
+            <span>
+              Lokasi cuaca <b>{weatherUseManual ? "Manual" : "GPS drone"}</b>
+            </span>
+            <span>
+              Koordinat{" "}
+              <b>{weatherLat.trim() && weatherLon.trim() ? `${weatherLat}, ${weatherLon}` : "-"}</b>
+            </span>
+          </div>
+        }
+        source="localStorage browser"
+        legend={[
+          { label: "Koneksi", tone: "info" },
+          { label: "Lokasi cuaca", tone: "weather" },
+        ]}
+        actions={
+          <>
+            <button className="btn btn-primary btn-sm" onClick={save}>
+              Simpan
+            </button>
+            {saved ? <span className="hint">Tersimpan.</span> : null}
+          </>
+        }
+      />
       <div className="fit-2col">
         <Card title="Backend" className="fit-card">
           <label className="label" htmlFor="setting-api">Alamat API</label>
@@ -94,18 +126,6 @@ export function SettingsPage() {
           </div>
           {manualError ? <p className="field-error">{manualError}</p> : null}
           {!manualError ? <p className="hint">Koordinat ini dipakai pada halaman detail cuaca.</p> : null}
-          <div className="flex gap-2" style={{ marginTop: "var(--space-2)" }}>
-            <Link className="btn btn-secondary btn-sm" to="/weather">
-              Buka detail cuaca
-            </Link>
-          </div>
-
-          <div className="flex center gap-3" style={{ marginTop: "var(--space-3)" }}>
-            <button className="btn btn-primary" onClick={save}>
-              Simpan
-            </button>
-            {saved ? <span className="hint">Tersimpan.</span> : null}
-          </div>
         </Card>
         <Card title="Koneksi MQTT" meta={client?.info.connected ? "Terhubung" : "Terputus"} className="fit-card">
           <dl className="kv">

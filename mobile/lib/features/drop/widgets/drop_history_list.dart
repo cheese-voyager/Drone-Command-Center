@@ -4,6 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../data/models/drop_point.dart';
 import '../../../../shared/widgets/hud_panel.dart';
+import '../../../../core/utils/formatters.dart';
 
 class DropHistoryList extends StatelessWidget {
   const DropHistoryList({super.key, required this.drops, this.max, this.emptyLabel = 'Belum ada drop tercatat.'});
@@ -46,7 +47,7 @@ class DropHistoryList extends StatelessWidget {
                       Text(
                         drop.lat == null || drop.lon == null
                             ? 'Koordinat belum tersedia'
-                            : '${drop.lat!.toStringAsFixed(6)}, ${drop.lon!.toStringAsFixed(6)}',
+                            : formatCoordinate(drop.lat, drop.lon),
                         style: DccText.mono(c.textMuted, size: 10),
                       ),
                     ],

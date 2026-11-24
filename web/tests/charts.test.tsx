@@ -9,7 +9,7 @@ describe("BarChart", () => {
       <BarChart
         data={[
           { label: "Dimuat", value: 100 },
-          { label: "Di-drop", value: 25 },
+          { label: "Sudah ditebar", value: 25 },
           { label: "Sisa", value: 75 },
         ]}
         format={(value) => `${value}%`}

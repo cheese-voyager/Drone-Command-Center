@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/hud_panel.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
-import '../widgets/drone_map.dart';
+import '../widgets/dcc_map.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.provider});
@@ -25,7 +26,7 @@ class _MapPageState extends State<MapPage> {
     final s = provider.status;
     final coordinate = s.lat == null || s.lon == null
         ? 'MENUNGGU GPS'
-        : '${s.lat!.toStringAsFixed(6)}, ${s.lon!.toStringAsFixed(6)}';
+        : formatCoordinate(s.lat, s.lon);
     final pathPoints = provider.samples.where((p) => p.lat != null && p.lon != null).length;
 
     return ListView(
@@ -60,11 +61,12 @@ class _MapPageState extends State<MapPage> {
           title: 'Peta taktis',
           meta: 'ITENAS · auto-center',
           padding: EdgeInsets.zero,
-          child: LiveMap(
+          child: DccMap(
             status: s,
             drops: provider.drops,
             path: provider.samples,
             showPath: _showPath,
+            height: 300,
           ),
         ),
         const SizedBox(height: 10),
@@ -79,15 +81,15 @@ class _MapPageState extends State<MapPage> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: _Info(label: 'Ketinggian', value: '${(s.alt ?? 0).toStringAsFixed(1)} m')),
+                  Expanded(child: _Info(label: 'Ketinggian', value: _metric(s.nav.altRelM ?? s.alt, ' m'))),
                   const SizedBox(width: 8),
-                  Expanded(child: _Info(label: 'Kecepatan', value: '${(s.speed ?? 0).toStringAsFixed(1)} m/s')),
+                  Expanded(child: _Info(label: 'Kecepatan', value: _metric(s.nav.groundspeedMps ?? s.speed, ' m/s'))),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(child: _Info(label: 'Heading', value: '${(s.yaw?.round() ?? 0).toString().padLeft(3, '0')}°')),
+                  Expanded(child: _Info(label: 'Heading', value: _heading(s.nav.headingDeg ?? s.yaw))),
                   const SizedBox(width: 8),
                   Expanded(child: _Info(label: 'Mode', value: s.mode ?? '-')),
                 ],
@@ -99,6 +101,12 @@ class _MapPageState extends State<MapPage> {
     );
   }
 }
+
+String _metric(double? value, [String unit = '']) =>
+    value == null ? '--' : '${value.toStringAsFixed(1)}$unit';
+
+String _heading(double? value) =>
+    value == null ? '--' : '${value.round().toString().padLeft(3, '0')}°';
 
 class _Info extends StatelessWidget {
   const _Info({required this.label, required this.value});
